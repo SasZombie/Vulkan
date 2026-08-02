@@ -1,0 +1,5 @@
+Phase 1: High-Level Vulkan SetupBefore you even touch the graphics pipeline, you need the foundational engine components:
+1. VkInstance: Initializes the Vulkan library and driver context.  
+2. Physical & Logical Devices (VkPhysicalDevice, VkDevice): Queries available GPUs and creates a logical interface to submit work to queue families (Graphics, Compute, Present).  
+3. Surface & Swapchain (VkSurfaceKHR, VkSwapchainKHR): Connects Vulkan to your windowing system (GLFW, SDL) and creates the frame buffers/images that hold rendered frames for display.  
+4. Command Buffers & Sync Objects: Allocates command buffers where draw commands are recorded, alongside fences and semaphores to manage async CPU-GPU execution.  
