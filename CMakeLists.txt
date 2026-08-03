@@ -39,9 +39,19 @@ SET(PHASE_1_SOURCES
     vkCommand.cpp
 )
 
-list(TRANSFORM PHASE_1_SOURCES PREPEND "src/vulkan/Phase1/")
+SET(PHASE_2_SOURCES
+    vkInputPipeline.cpp
+    vkShaderPipeline.cpp
+    vkViewport.cpp
+    vkPixelStyling.cpp
+    vkRastarization.cpp
+    vkMasterPipeline.cpp
+)
 
-add_executable(main main.cpp ${GLOBAL_SOURCES} ${PHASE_1_SOURCES})
+list(TRANSFORM PHASE_1_SOURCES PREPEND "src/vulkan/Phase1/")
+list(TRANSFORM PHASE_2_SOURCES PREPEND "src/vulkan/Phase2/")
+
+add_executable(main main.cpp ${GLOBAL_SOURCES} ${PHASE_1_SOURCES} ${PHASE_2_SOURCES})
 
 target_include_directories(main PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include

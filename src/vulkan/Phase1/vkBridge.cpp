@@ -24,7 +24,6 @@ VulkanBridge::VulkanBridge(const Window &window, VulkanInstanceWrapper &instance
         throw std::runtime_error("Cannot support window surface!\n");
     }
 
-    VkSurfaceFormatKHR surfaceFormat{};
     surfaceFormat.format = VK_FORMAT_B8G8R8A8_SRGB;
     surfaceFormat.colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 

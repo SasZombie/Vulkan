@@ -1,9 +1,20 @@
+// Phase 1
 #include "vkInitialize.hpp"
 #include "vkPhysicalDevices.hpp"
 #include "vkDevice.hpp"
 #include "window.hpp"
 #include "vkBridge.hpp"
 #include "vkCommand.hpp"
+
+// Phase 2
+#include "vkShaderPipeline.hpp"
+#include "vkInputPipeline.hpp"
+#include "vkViewport.hpp"
+#include "vkPixelStyling.hpp"
+#include "vkRastarization.hpp"
+// Final Pipe
+
+#include "vkMasterPipeline.hpp"
 
 extern "C" const char *__lsan_default_suppressions();
 
@@ -24,15 +35,27 @@ int main()
     }
 
     {
-
         Window window(800, 600, "Meow");
-        
+
         VulkanInstanceWrapper vk;
         VulkanPhysicalDevice vkPhysical{vk};
         VulkanDevice vkDevice{vkPhysical};
-        VulkanBridge vkBridge{window, vk, vkPhysical, vkDevice};   
+        VulkanBridge vkBridge{window, vk, vkPhysical, vkDevice};
 
         VulkanCommand vkCommand{vkDevice};
+
+        // Phase 2
+        VulkanInputPipeline inputPipeline;
+        VulkanShaderPipeline shaderPipeline{vkDevice};
+        VulkanViewport viewPort{window};
+        VulkanPixelStyling pixelStyle;
+        VulkanRastarization raster;
+        
+        // Final Pipe
+
+        VulkanPipelineComponents components{&vkBridge, &shaderPipeline, &inputPipeline, &viewPort, &raster, &pixelStyle};
+
+        VulkanMasterPipeline masterPipeline{vkDevice, components};
     }
 
     glfwTerminate();

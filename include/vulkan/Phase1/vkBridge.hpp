@@ -11,6 +11,8 @@ class VulkanPhysicalDevice;
 class VulkanBridge
 {
 private:
+    VkSurfaceFormatKHR surfaceFormat;
+
     VulkanInstanceWrapper &vulkanInstance;
     VulkanDevice &vulkanDevice;
     VkSurfaceKHR surface = VK_NULL_HANDLE;
@@ -20,6 +22,11 @@ private:
 public:
     VulkanBridge(const Window &window, VulkanInstanceWrapper &instance, const VulkanPhysicalDevice &physicalDevice, VulkanDevice &device);
 
+    [[nodiscard]]VkSurfaceFormatKHR getSurfaceFormat() const noexcept
+    {
+        return surfaceFormat;
+    }
+    
     ~VulkanBridge()
     {
         for (auto imageView : swapchainImageViews)

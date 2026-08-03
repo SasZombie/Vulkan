@@ -9,7 +9,7 @@ class Window
 {
 private:
     size_t width, height;
-
+    
 public:
     GLFWwindow *window;
 
