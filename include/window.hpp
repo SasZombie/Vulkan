@@ -7,6 +7,9 @@
 
 class Window
 {
+private:
+    size_t width, height;
+
 public:
     GLFWwindow *window;
 
@@ -40,5 +43,20 @@ public:
         {
             glfwDestroyWindow(window);
         }
+    }
+
+    size_t getWidth() const noexcept
+    {
+        return width;
+    }
+
+    size_t getHeight() const noexcept
+    {
+        return height;
+    }
+
+    std::pair<size_t, size_t> getSize() const noexcept
+    {
+        return std::make_pair(width, height);
     }
 };

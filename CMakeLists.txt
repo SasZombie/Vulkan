@@ -27,11 +27,29 @@ find_package(Vulkan REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(glm REQUIRED)
 
-add_executable(main main.cpp src/vkInitialize.cpp src/vkPhysicalDevices.cpp src/vkDevice.cpp src/vkBridge.cpp src/window.cpp)
+SET(GLOBAL_SOURCES
+    src/window.cpp
+)
 
-target_include_directories(main PUBLIC include)
+SET(PHASE_1_SOURCES
+    vkInitialize.cpp
+    vkPhysicalDevices.cpp
+    vkDevice.cpp
+    vkBridge.cpp
+    vkCommand.cpp
+)
 
-target_link_libraries(main PRIVATE 
+list(TRANSFORM PHASE_1_SOURCES PREPEND "src/vulkan/Phase1/")
+
+add_executable(main main.cpp ${GLOBAL_SOURCES} ${PHASE_1_SOURCES})
+
+target_include_directories(main PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/Phase1
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/Phase2
+)
+
+target_link_libraries(main PRIVATE
     Vulkan::Vulkan
     glfw
     glm::glm
