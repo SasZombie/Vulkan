@@ -16,6 +16,8 @@
 
 #include "vkMasterPipeline.hpp"
 
+#include "vkRenderer.hpp"
+
 extern "C" const char *__lsan_default_suppressions();
 
 int main()
@@ -34,28 +36,16 @@ int main()
         throw std::runtime_error("Vulkan is NOT supported on this system!");
     }
 
+    Window window(800, 600, "Meow");
+
     {
-        Window window(800, 600, "Meow");
+        VulkanRenderer vkRenderer(window);
+        while(!glfwWindowShouldClose(window))
+        {
+            glfwPollEvents();
+            vkRenderer.drawFrame();
 
-        VulkanInstanceWrapper vk;
-        VulkanPhysicalDevice vkPhysical{vk};
-        VulkanDevice vkDevice{vkPhysical};
-        VulkanBridge vkBridge{window, vk, vkPhysical, vkDevice};
-
-        VulkanCommand vkCommand{vkDevice};
-
-        // Phase 2
-        VulkanInputPipeline inputPipeline;
-        VulkanShaderPipeline shaderPipeline{vkDevice};
-        VulkanViewport viewPort{window};
-        VulkanPixelStyling pixelStyle;
-        VulkanRastarization raster;
-        
-        // Final Pipe
-
-        VulkanPipelineComponents components{&vkBridge, &shaderPipeline, &inputPipeline, &viewPort, &raster, &pixelStyle};
-
-        VulkanMasterPipeline masterPipeline{vkDevice, components};
+        }   
     }
 
     glfwTerminate();
@@ -70,8 +60,12 @@ extern "C" const char *__lsan_default_suppressions()
            "leak:libnvidia-glcore.so\n"
            "leak:libGLX_nvidia.so\n"
            "leak:libnvidia-allocator.so\n"
-           "leak:<unknown module>\n"
-           "leak:libnvidia-glsi.so\n";
+           "leak:libnvidia-glsi.so\n"
+           "leak:libwindow-decorations-gtk-module.so\n"
+           "leak:libcolorreload-gtk-module.so\n"
+           "leak:libdecor-gtk.so\n"
+           "leak:libgtk-3.so\n"
+           "leak:<unknown module>\n";
 }
 #endif
 #endif

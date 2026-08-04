@@ -36,6 +36,7 @@ VulkanDevice::VulkanDevice(const VulkanPhysicalDevice& physicalDevice)
     VkPhysicalDeviceVulkan13Features features13{};
     features13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
     features13.dynamicRendering = VK_TRUE;
+    features13.synchronization2 = true;
     features13.pNext = &features14;
 
     VkPhysicalDeviceFeatures2 deviceFeatures2{};

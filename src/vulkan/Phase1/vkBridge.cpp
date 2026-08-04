@@ -59,7 +59,7 @@ VulkanBridge::VulkanBridge(const Window &window, VulkanInstanceWrapper &instance
 
     uint32_t actualImageCount = 0;
     vkGetSwapchainImagesKHR(device, swapchain, &actualImageCount, nullptr);
-    std::vector<VkImage> swapchainImages(actualImageCount);
+    swapchainImages.resize(actualImageCount);
     vkGetSwapchainImagesKHR(device, swapchain, &actualImageCount, swapchainImages.data());
 
     swapchainImageViews.resize(actualImageCount);

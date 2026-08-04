@@ -30,6 +30,11 @@ private:
 public:
     VulkanMasterPipeline(VulkanDevice &vulkanDevice, const VulkanPipelineComponents& components) noexcept;
 
+    [[nodiscard]] const VkPipeline& getGraphicsPipeline() const noexcept
+    {
+        return graphicsPipeline;
+    }
+
     ~VulkanMasterPipeline() noexcept
     {
         cleanUp();

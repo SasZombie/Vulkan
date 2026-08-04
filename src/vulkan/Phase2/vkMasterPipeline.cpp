@@ -15,10 +15,19 @@ VulkanMasterPipeline::VulkanMasterPipeline(VulkanDevice &vulkanDevice, const Vul
     VkFormat colorFormat = components.bridge->getSurfaceFormat().format;
     renderingInfo.pColorAttachmentFormats = &colorFormat;
 
+    std::vector<VkDynamicState> dynamicStates = {
+        VK_DYNAMIC_STATE_VIEWPORT,
+        VK_DYNAMIC_STATE_SCISSOR};
+
+    VkPipelineDynamicStateCreateInfo dynamicStateInfo{};
+    dynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    dynamicStateInfo.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
+    dynamicStateInfo.pDynamicStates = dynamicStates.data();
+
     // Master Pipeline Create Info
     VkGraphicsPipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    pipelineInfo.pNext = &renderingInfo; // Dynamic rendering hook!
+    pipelineInfo.pNext = &renderingInfo; 
 
     pipelineInfo.stageCount = 2;
 
@@ -41,6 +50,7 @@ VulkanMasterPipeline::VulkanMasterPipeline(VulkanDevice &vulkanDevice, const Vul
 
     pipelineInfo.pColorBlendState = &components.pixelStyling->getColorBlending();
     pipelineInfo.layout = pipelineLayout;
+    pipelineInfo.pDynamicState = &dynamicStateInfo;
 
     vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline);
 }

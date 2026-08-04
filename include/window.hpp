@@ -59,4 +59,9 @@ public:
     {
         return std::make_pair(width, height);
     }
+
+    operator GLFWwindow*() noexcept
+    {
+        return window;
+    }
 };

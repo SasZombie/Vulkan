@@ -29,6 +29,7 @@ find_package(glm REQUIRED)
 
 SET(GLOBAL_SOURCES
     src/window.cpp
+    src/vkRenderer.cpp
 )
 
 SET(PHASE_1_SOURCES

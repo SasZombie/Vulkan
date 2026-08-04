@@ -13,12 +13,12 @@ class VulkanViewport
 public: 
     VulkanViewport(const Window& window);
 
-    VkViewport getViewport() const noexcept
+    const VkViewport& getViewport() const noexcept
     {
         return viewport;
     }
 
-    VkRect2D getScissors() const noexcept
+    const VkRect2D& getScissors() const noexcept
     {
         return scissor;
     }

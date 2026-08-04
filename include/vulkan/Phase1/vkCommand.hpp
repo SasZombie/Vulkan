@@ -1,21 +1,45 @@
 #pragma once
 
+#include <vector>
 #include <vulkan/vulkan.h>
 #include "vkDevice.hpp"
+
+constexpr size_t MAX_FRAMES_IN_FLIGHT = 2;
 
 class VulkanCommand
 {
 private:
     VulkanDevice &device;
     VkCommandPool commandPool = VK_NULL_HANDLE;
-    VkCommandBuffer commandBuff = VK_NULL_HANDLE;
-
-    VkSemaphore imageAvailableSemaphore = VK_NULL_HANDLE;
-    VkSemaphore renderFinishedSemaphore = VK_NULL_HANDLE;
-    VkFence inFlightFence = VK_NULL_HANDLE;
+    
+    std::vector<VkCommandBuffer> commandBuff;
+    std::vector<VkSemaphore> imageAvailableSemaphore;
+    std::vector<VkSemaphore> renderFinishedSemaphore;
+    std::vector<VkFence> inFlightFence;
 
 public:
     VulkanCommand(VulkanDevice &ndevice);
+
+    [[nodiscard]]const VkFence& getFence() const noexcept
+    {
+        return inFlightFence;
+    }
+
+    [[nodiscard]]const VkSemaphore& getImageAvailableSemaphore() const noexcept
+    {
+        return imageAvailableSemaphore;
+    }
+
+    [[nodiscard]]const VkSemaphore& getRendererFinishedSemaphore() const noexcept
+    {
+        return renderFinishedSemaphore;
+    }
+
+    [[nodiscard]]const VkCommandBuffer& getCommandBuffer() const noexcept
+    {
+        return commandBuff;
+    }
+    
     ~VulkanCommand() noexcept
     {
         if (inFlightFence)
@@ -86,4 +110,6 @@ public:
         }
         return *this;
     }
+
+
 };

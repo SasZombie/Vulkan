@@ -17,7 +17,9 @@ private:
     VulkanDevice &vulkanDevice;
     VkSurfaceKHR surface = VK_NULL_HANDLE;
     VkSwapchainKHR swapchain = VK_NULL_HANDLE;
+    std::vector<VkImage> swapchainImages;
     std::vector<VkImageView> swapchainImageViews;
+
 
 public:
     VulkanBridge(const Window &window, VulkanInstanceWrapper &instance, const VulkanPhysicalDevice &physicalDevice, VulkanDevice &device);
@@ -25,6 +27,26 @@ public:
     [[nodiscard]]VkSurfaceFormatKHR getSurfaceFormat() const noexcept
     {
         return surfaceFormat;
+    }
+    
+    [[nodiscard]] const VkSwapchainKHR& getSwapChain() const noexcept
+    {
+        return swapchain;
+    }
+
+    [[nodiscard]] const VkSurfaceKHR& getSurface() const noexcept
+    {
+        return surface;
+    }
+
+    [[nodiscard]] const std::vector<VkImage>& getSwapchainImages() const noexcept
+    {
+        return swapchainImages;
+    }
+
+    [[nodiscard]] const std::vector<VkImageView>& getSwapchainImageViews() const noexcept
+    {
+        return swapchainImageViews;
     }
     
     ~VulkanBridge()
