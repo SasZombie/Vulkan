@@ -31,21 +31,24 @@ void VulkanRenderer::drawFrame() noexcept
     drawCall();
     imageLayoutTransitionPresent(barrierToRender);
 
-    gpuCall();
+    gpuCall(imageIndex);
 
     presentImageToWindow(imageIndex);
+
+    vkCommand.advanceFrame();
 }
 
 void VulkanRenderer::preFrame() const noexcept
 {
     vkWaitForFences(vkDevice, 1, &vkCommand.getFence(), VK_TRUE, UINT64_MAX);
 
-    vkResetFences(vkDevice, 1, &vkCommand.getFence());
 }
 
 void VulkanRenderer::getNextImage(uint32_t &imageIndex) const noexcept
 {
     vkAcquireNextImageKHR(vkDevice, vkBridge.getSwapChain(), UINT64_MAX, vkCommand.getImageAvailableSemaphore(), VK_NULL_HANDLE, &imageIndex);
+    vkResetFences(vkDevice, 1, &vkCommand.getFence());
+
 }
 
 void VulkanRenderer::recordCommandBuffer() const noexcept
@@ -130,7 +133,7 @@ void VulkanRenderer::imageLayoutTransitionPresent(VkImageMemoryBarrier2 &barrier
     vkEndCommandBuffer(vkCommand.getCommandBuffer());
 }
 
-void VulkanRenderer::gpuCall() const noexcept
+void VulkanRenderer::gpuCall(uint32_t imageIndex) const noexcept
 {
     VkSemaphoreSubmitInfo waitSemaphoreInfo{};
     waitSemaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;

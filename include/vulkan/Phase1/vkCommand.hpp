@@ -4,57 +4,72 @@
 #include <vulkan/vulkan.h>
 #include "vkDevice.hpp"
 
-constexpr size_t MAX_FRAMES_IN_FLIGHT = 2;
+constexpr size_t MAX_FRAMES_IN_FLIGHT = 3;
 
 class VulkanCommand
 {
 private:
     VulkanDevice &device;
     VkCommandPool commandPool = VK_NULL_HANDLE;
-    
+
     std::vector<VkCommandBuffer> commandBuff;
     std::vector<VkSemaphore> imageAvailableSemaphore;
     std::vector<VkSemaphore> renderFinishedSemaphore;
     std::vector<VkFence> inFlightFence;
 
+    uint32_t currentFrame = 0;
+
 public:
     VulkanCommand(VulkanDevice &ndevice);
 
-    [[nodiscard]]const VkFence& getFence() const noexcept
+    [[nodiscard]] const VkFence &getFence() const noexcept
     {
-        return inFlightFence;
+        return inFlightFence[currentFrame];
     }
 
-    [[nodiscard]]const VkSemaphore& getImageAvailableSemaphore() const noexcept
+    [[nodiscard]] const VkSemaphore &getImageAvailableSemaphore() const noexcept
     {
-        return imageAvailableSemaphore;
+        return imageAvailableSemaphore[currentFrame];
     }
 
-    [[nodiscard]]const VkSemaphore& getRendererFinishedSemaphore() const noexcept
+    [[nodiscard]] const VkSemaphore &getRendererFinishedSemaphore() const noexcept
     {
-        return renderFinishedSemaphore;
+        return renderFinishedSemaphore[currentFrame];
     }
 
-    [[nodiscard]]const VkCommandBuffer& getCommandBuffer() const noexcept
+    [[nodiscard]] const VkCommandBuffer &getCommandBuffer() const noexcept
     {
-        return commandBuff;
+        return commandBuff[currentFrame];
     }
-    
+
+    [[nodiscard]] uint32_t getCurrentFrame() const noexcept
+    {
+        return currentFrame;
+    }
+
+    void advanceFrame() noexcept
+    {
+        currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+    }
+
     ~VulkanCommand() noexcept
     {
-        if (inFlightFence)
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
-            vkDestroyFence(device, inFlightFence, nullptr);
-        }
+            if (inFlightFence[i])
+            {
+                vkDestroyFence(device, inFlightFence[i], nullptr);
+            }
 
-        if (renderFinishedSemaphore)
-        {
-            vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
-        }
+            if (renderFinishedSemaphore[i])
+            {
+                vkDestroySemaphore(device, renderFinishedSemaphore[i], nullptr);
+            }
 
-        if (imageAvailableSemaphore)
-        {
-            vkDestroySemaphore(device, imageAvailableSemaphore, nullptr);
+            if (imageAvailableSemaphore[i])
+            {
+                vkDestroySemaphore(device, imageAvailableSemaphore[i], nullptr);
+            }
         }
 
         if (commandPool)
@@ -71,30 +86,34 @@ public:
           imageAvailableSemaphore(other.imageAvailableSemaphore), renderFinishedSemaphore(other.renderFinishedSemaphore),
           inFlightFence(other.inFlightFence)
     {
-        other.commandBuff = nullptr;
+        other.commandBuff.clear();
         other.commandPool = nullptr;
-        other.imageAvailableSemaphore = nullptr;
-        other.inFlightFence = nullptr;
-        other.renderFinishedSemaphore = nullptr;
+        other.imageAvailableSemaphore.clear();
+        other.inFlightFence.clear();
+        other.renderFinishedSemaphore.clear();
     }
 
     VulkanCommand &operator=(VulkanCommand &&other) noexcept
     {
         if (this != &other)
         {
-            if (inFlightFence)
+            for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
             {
-                vkDestroyFence(device, inFlightFence, nullptr);
-            }
 
-            if (renderFinishedSemaphore)
-            {
-                vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
-            }
+                if (inFlightFence[i])
+                {
+                    vkDestroyFence(device, inFlightFence[i], nullptr);
+                }
 
-            if (imageAvailableSemaphore)
-            {
-                vkDestroySemaphore(device, imageAvailableSemaphore, nullptr);
+                if (renderFinishedSemaphore[i])
+                {
+                    vkDestroySemaphore(device, renderFinishedSemaphore[i], nullptr);
+                }
+
+                if (imageAvailableSemaphore[i])
+                {
+                    vkDestroySemaphore(device, imageAvailableSemaphore[i], nullptr);
+                }
             }
 
             if (commandPool)
@@ -110,6 +129,4 @@ public:
         }
         return *this;
     }
-
-
 };
