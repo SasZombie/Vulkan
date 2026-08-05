@@ -3,9 +3,18 @@
 sas::VulkanMasterPipeline::VulkanMasterPipeline(VulkanDevice &vulkanDevice, const VulkanPipelineComponents &components) noexcept
     : device(vulkanDevice)
 {
+    VkPushConstantRange pushConstantRange{};
+    pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT; 
+    pushConstantRange.offset = 0;
+    pushConstantRange.size = sizeof(PushConstants);
+
+
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipelineLayoutInfo.pushConstantRangeCount = 1;
+    pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
+
     vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout);
 
     VkPipelineRenderingCreateInfo renderingInfo{};
@@ -19,6 +28,7 @@ sas::VulkanMasterPipeline::VulkanMasterPipeline(VulkanDevice &vulkanDevice, cons
         VK_DYNAMIC_STATE_VIEWPORT,
         VK_DYNAMIC_STATE_SCISSOR};
 
+
     VkPipelineDynamicStateCreateInfo dynamicStateInfo{};
     dynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
     dynamicStateInfo.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
@@ -27,7 +37,7 @@ sas::VulkanMasterPipeline::VulkanMasterPipeline(VulkanDevice &vulkanDevice, cons
     // Master Pipeline Create Info
     VkGraphicsPipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    pipelineInfo.pNext = &renderingInfo; 
+    pipelineInfo.pNext = &renderingInfo;
 
     pipelineInfo.stageCount = 2;
 

@@ -1,7 +1,8 @@
 #include "vkRenderer.hpp"
 
-sas::VulkanRenderer::VulkanRenderer(Window &nwindow)
+sas::VulkanRenderer::VulkanRenderer(Window &nwindow, Camera &ncamera)
     : window(nwindow),
+      camera(ncamera),
       vk(),
       vkPhysical(vk),
       vkDevice(vkPhysical),
@@ -41,14 +42,12 @@ void sas::VulkanRenderer::drawFrame() noexcept
 void sas::VulkanRenderer::preFrame() const noexcept
 {
     vkWaitForFences(vkDevice, 1, &vkCommand.getFence(), VK_TRUE, UINT64_MAX);
-
 }
 
 void sas::VulkanRenderer::getNextImage(uint32_t &imageIndex) const noexcept
 {
     vkAcquireNextImageKHR(vkDevice, vkBridge.getSwapChain(), UINT64_MAX, vkCommand.getImageAvailableSemaphore(), VK_NULL_HANDLE, &imageIndex);
     vkResetFences(vkDevice, 1, &vkCommand.getFence());
-
 }
 
 void sas::VulkanRenderer::recordCommandBuffer() const noexcept
@@ -110,7 +109,19 @@ void sas::VulkanRenderer::drawCall() const noexcept
     vkCmdSetViewport(vkCommand.getCommandBuffer(), 0, 1, &viewPort.getViewport());
     vkCmdSetScissor(vkCommand.getCommandBuffer(), 0, 1, &viewPort.getScissors());
 
+    PushConstants constants{camera.getMVP()};
     // Draw 3 vertices (1 instance). No vertex buffers needed because of our hardcoded gl_VertexIndex shader!
+
+    sas::math::Mat4 proj = math::perspective(math::degToRad(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+
+    vkCmdPushConstants(
+        vkCommand.getCommandBuffer(),
+        masterPipeline.getGraphicsPipelineLayout(),
+        VK_SHADER_STAGE_VERTEX_BIT,
+        0,
+        sizeof(PushConstants),
+        &constants.mvp);
+
     vkCmdDraw(vkCommand.getCommandBuffer(), 3, 1, 0, 0);
 
     vkCmdEndRendering(vkCommand.getCommandBuffer());
@@ -167,7 +178,7 @@ void sas::VulkanRenderer::presentImageToWindow(uint32_t imageIndex) const noexce
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = &vkCommand.getRendererFinishedSemaphore(); 
+    presentInfo.pWaitSemaphores = &vkCommand.getRendererFinishedSemaphore();
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = &vkBridge.getSwapChain();
     presentInfo.pImageIndices = &imageIndex;

@@ -37,6 +37,11 @@ namespace sas
             return graphicsPipeline;
         }
 
+        [[nodiscard]] const VkPipelineLayout &getGraphicsPipelineLayout() const noexcept
+        {
+            return pipelineLayout;
+        }
+
         ~VulkanMasterPipeline() noexcept
         {
             cleanUp();

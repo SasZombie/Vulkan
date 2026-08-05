@@ -39,15 +39,15 @@ int main()
     }
 
     Window window(800, 600, "Meow");
-
+    Camera camera{math::Vec3{0, 0, 3.f}};
     {
-        VulkanRenderer vkRenderer(window);
-        while(!glfwWindowShouldClose(window))
+        VulkanRenderer vkRenderer(window, camera);
+        while (!glfwWindowShouldClose(window))
         {
             glfwPollEvents();
+            window.processInput(camera);
             vkRenderer.drawFrame();
-
-        }   
+        }
     }
 
     glfwTerminate();

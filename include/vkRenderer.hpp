@@ -16,6 +16,7 @@
 // Final Pipe
 
 #include "vkMasterPipeline.hpp"
+#include "camera.hpp"
 
 namespace sas
 {
@@ -23,7 +24,7 @@ namespace sas
     class VulkanRenderer
     {
     public:
-        VulkanRenderer(Window &window);
+        VulkanRenderer(Window &window, Camera& camera);
 
         VulkanRenderer(VulkanRenderer &&) noexcept = default;
         VulkanRenderer &operator=(VulkanRenderer &&) noexcept = default;
@@ -43,6 +44,7 @@ namespace sas
 
     private:
         Window &window;
+        Camera &camera;
         VulkanInstanceWrapper vk;
         VulkanPhysicalDevice vkPhysical;
         VulkanDevice vkDevice;

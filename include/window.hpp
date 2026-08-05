@@ -5,7 +5,7 @@
 
 #include <string>
 
-#include "Math.hpp"
+#include "camera.hpp"
 
 namespace sas
 {
@@ -13,14 +13,14 @@ namespace sas
     class Window
     {
     private:
-        size_t width, height;
+        math::Vec2 size;
 
     public:
         GLFWwindow *window;
 
-        Window(size_t width, size_t height, const std::string &title);
+        Window(int width, int height, const std::string &title);
 
-        void processInput() const noexcept;
+        void processInput(Camera& camera) noexcept;
 
         Window(const Window &) = delete;
         Window &operator=(const Window &) = delete;
@@ -54,17 +54,17 @@ namespace sas
 
         size_t getWidth() const noexcept
         {
-            return width;
+            return size.x;
         }
 
         size_t getHeight() const noexcept
         {
-            return height;
+            return size.y;
         }
 
         std::pair<size_t, size_t> getSize() const noexcept
         {
-            return std::make_pair(width, height);
+            return std::make_pair(size.x, size.y);
         }
 
         operator GLFWwindow *() noexcept

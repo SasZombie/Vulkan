@@ -6,9 +6,14 @@
 #include "vkViewport.hpp"
 #include "vkRastarization.hpp"
 #include "vkPixelStyling.hpp"
-
+#include "Math.hpp"
 namespace sas
 {
+
+    struct PushConstants
+    {
+        math::Mat4 mvp;
+    };
 
     struct VulkanPipelineComponents
     {
