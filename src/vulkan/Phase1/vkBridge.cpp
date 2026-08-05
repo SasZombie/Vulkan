@@ -3,7 +3,7 @@
 #include "vkDevice.hpp"
 #include "vkInitialize.hpp"
 #include "vkPhysicalDevices.hpp"
-#include "window.hpp"
+#include "Window.hpp"
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>

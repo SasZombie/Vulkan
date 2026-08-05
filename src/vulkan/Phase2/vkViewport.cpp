@@ -1,6 +1,6 @@
 #include "vkViewport.hpp"
 
-#include "window.hpp"
+#include "Window.hpp"
 
 sas::VulkanViewport::VulkanViewport(const Window &window)
 {

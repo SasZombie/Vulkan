@@ -1,4 +1,4 @@
-#include "camera.hpp"
+#include "Camera.hpp"
 
 void sas::Camera::move(const math::Vec3 &movement) noexcept
 {

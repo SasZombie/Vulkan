@@ -2,7 +2,7 @@
 #include "vkInitialize.hpp"
 #include "vkPhysicalDevices.hpp"
 #include "vkDevice.hpp"
-#include "window.hpp"
+#include "Window.hpp"
 #include "vkBridge.hpp"
 #include "vkCommand.hpp"
 
@@ -17,6 +17,8 @@
 #include "vkMasterPipeline.hpp"
 
 #include "vkRenderer.hpp"
+
+#include "vertex.hpp"
 
 extern "C" const char *__lsan_default_suppressions();
 

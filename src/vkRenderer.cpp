@@ -102,12 +102,105 @@ void sas::VulkanRenderer::dynamicRendering(uint32_t imageIndex) const noexcept
     vkCmdBeginRendering(vkCommand.getCommandBuffer(), &renderingInfo);
 }
 
+uint32_t findMemoryType(const VkPhysicalDevice &physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
+{
+    VkPhysicalDeviceMemoryProperties memProperties;
+    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
+    {
+        // Check 1: Is bit i set in typeFilter? (Is this memory type allowed for the buffer?)
+        // Check 2: Does this memory type have all the property flags we requested?
+        if ((typeFilter & (1 << i)) &&
+            (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
+        {
+            return i;
+        }
+    }
+
+    throw std::runtime_error("failed to find suitable memory type!");
+}
+// Helper function to create a buffer + allocate memory
+void createBuffer(const VkDevice &device, const VkPhysicalDevice &vkPhysical, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory)
+{
+    VkBufferCreateInfo bufferInfo{};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = size;
+    bufferInfo.usage = usage;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    vkCreateBuffer(device, &bufferInfo, nullptr, &buffer);
+
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    // Find memory type index matching CPU-visible flags from PhysicalDevice
+    allocInfo.memoryTypeIndex = findMemoryType(vkPhysical, memRequirements.memoryTypeBits, properties);
+
+    vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory);
+    vkBindBufferMemory(device, buffer, bufferMemory, 0);
+}
+#include "vertex.hpp"
+#include <cstring>
+std::pair<VkBuffer, VkBuffer> actualCreateBuffer(const VkDevice &device, const VkPhysicalDevice &physicalDevice)
+{
+    // Example mesh data (a 2D textured quad / 3D box face)
+    const std::vector<sas::Vertex> vertices = {
+        {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+        {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+        {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+        {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}};
+
+    // Index buffer (reuses vertices to draw two triangles forming a quad)
+    const std::vector<uint32_t> indices = {
+        0, 1, 2, // First triangle
+        2, 3, 0  // Second triangle
+    };
+    // Creation Code:
+    VkBuffer vertexBuffer;
+    VkDeviceMemory vertexBufferMemory;
+    VkBuffer indexBuffer;
+    VkDeviceMemory indexBufferMemory;
+
+    // 1. Create & Copy Vertex Buffer
+    createBuffer(device, physicalDevice, sizeof(vertices[0]) * vertices.size(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                 vertexBuffer, vertexBufferMemory);
+
+    void *data;
+    vkMapMemory(device, vertexBufferMemory, 0, sizeof(vertices[0]) * vertices.size(), 0, &data);
+    memcpy(data, vertices.data(), (size_t)sizeof(vertices[0]) * vertices.size());
+    vkUnmapMemory(device, vertexBufferMemory);
+
+    // 2. Create & Copy Index Buffer
+    createBuffer(device, physicalDevice, sizeof(indices[0]) * indices.size(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                 indexBuffer, indexBufferMemory);
+
+    vkMapMemory(device, indexBufferMemory, 0, sizeof(indices[0]) * indices.size(), 0, &data);
+    memcpy(data, indices.data(), (size_t)sizeof(indices[0]) * indices.size());
+    vkUnmapMemory(device, indexBufferMemory);
+
+    return {vertexBuffer, indexBuffer};
+}
+
 void sas::VulkanRenderer::drawCall() const noexcept
 {
     vkCmdBindPipeline(vkCommand.getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, masterPipeline.getGraphicsPipeline());
 
     vkCmdSetViewport(vkCommand.getCommandBuffer(), 0, 1, &viewPort.getViewport());
     vkCmdSetScissor(vkCommand.getCommandBuffer(), 0, 1, &viewPort.getScissors());
+
+    const auto [vertex, index] = actualCreateBuffer(vkDevice, vkPhysical);
+    VkBuffer buffers[] = {vertex};
+
+    VkDeviceSize offsets[] = {0};
+    vkCmdBindVertexBuffers(vkCommand.getCommandBuffer(), 0, 1, buffers, offsets);
+
+    vkCmdBindIndexBuffer(vkCommand.getCommandBuffer(), index, 0, VK_INDEX_TYPE_UINT32);
 
     PushConstants constants{camera.getMVP()};
 
@@ -118,8 +211,14 @@ void sas::VulkanRenderer::drawCall() const noexcept
         0,
         sizeof(PushConstants),
         &constants.mvp);
-        
-    vkCmdDraw(vkCommand.getCommandBuffer(), 3, 1, 0, 0);
+
+    // vkCmdDraw(vkCommand.getCommandBuffer(), 3, 1, 0, 0);
+
+    const std::vector<uint32_t> indices2 = {
+        0, 1, 2, // First triangle
+        2, 3, 0  // Second triangle
+    };
+    vkCmdDrawIndexed(vkCommand.getCommandBuffer(), static_cast<uint32_t>(indices2.size()), 1, 0, 0, 0);
 
     vkCmdEndRendering(vkCommand.getCommandBuffer());
 }

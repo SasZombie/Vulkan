@@ -1,4 +1,4 @@
-#include "window.hpp"
+#include "Window.hpp"
 #include <stdexcept>
 
 sas::Window::Window(int nwidth, int nheight, const std::string &title)

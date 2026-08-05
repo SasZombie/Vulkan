@@ -5,7 +5,7 @@
 
 #include <string>
 
-#include "camera.hpp"
+#include "Camera.hpp"
 
 namespace sas
 {

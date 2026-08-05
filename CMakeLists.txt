@@ -28,9 +28,10 @@ find_package(glfw3 REQUIRED)
 find_package(glm REQUIRED)
 
 SET(GLOBAL_SOURCES
-    src/window.cpp
+    src/Window.cpp
     src/vkRenderer.cpp
-    src/camera.cpp
+    src/Camera.cpp
+    src/Scene.cpp
 )
 
 SET(PHASE_1_SOURCES

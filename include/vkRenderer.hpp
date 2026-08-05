@@ -3,7 +3,7 @@
 #include "vkInitialize.hpp"
 #include "vkPhysicalDevices.hpp"
 #include "vkDevice.hpp"
-#include "window.hpp"
+#include "Window.hpp"
 #include "vkBridge.hpp"
 #include "vkCommand.hpp"
 
@@ -16,7 +16,7 @@
 // Final Pipe
 
 #include "vkMasterPipeline.hpp"
-#include "camera.hpp"
+#include "Camera.hpp"
 
 namespace sas
 {
