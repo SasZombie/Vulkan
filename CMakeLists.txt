@@ -4,19 +4,19 @@ project(Vulkan)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_library(project_warnings INTERFACE)
-add_library(project_sanitizers INTERFACE)
+add_library(project_warnings_vulkan INTERFACE)
+add_library(project_sanitizers_vulkan INTERFACE)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_options(project_warnings INTERFACE
+    target_compile_options(project_warnings_vulkan INTERFACE
         -Wall -Wextra -Wformat-nonliteral -Wcast-align -Wpointer-arith
         -Wmissing-declarations -Winline -Wundef -Wcast-qual -Wshadow
         -Wwrite-strings -Wno-unused-parameter -Wfloat-equal
     )
-    target_compile_options(project_sanitizers INTERFACE
+    target_compile_options(project_sanitizers_vulkan INTERFACE
         -fsanitize=undefined -fsanitize=address -fsanitize=leak -g
     )
-    target_link_options(project_sanitizers INTERFACE
+    target_link_options(project_sanitizers_vulkan INTERFACE
         -fsanitize=undefined -fsanitize=address -fsanitize=leak
     )
 else()
@@ -53,18 +53,23 @@ list(TRANSFORM PHASE_1_SOURCES PREPEND "src/vulkan/Phase1/")
 list(TRANSFORM PHASE_2_SOURCES PREPEND "src/vulkan/Phase2/")
 
 add_executable(main main.cpp ${GLOBAL_SOURCES} ${PHASE_1_SOURCES} ${PHASE_2_SOURCES})
+add_subdirectory(deps/Engine)
+
 
 target_include_directories(main PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/Phase1
     ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/Phase2
+    ${CMAKE_CURRENT_SOURCE_DIR}/deps/Engine/lib/include
+
 )
+
 
 target_link_libraries(main PRIVATE
     Vulkan::Vulkan
     glfw
     glm::glm
-
-    project_warnings
-    project_sanitizers
+    sas_physics
+    project_warnings_vulkan
+    project_sanitizers_vulkan
 )

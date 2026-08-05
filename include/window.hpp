@@ -5,15 +5,21 @@
 
 #include <string>
 
+#include "Math.hpp"
+
+
+
 class Window
 {
 private:
     size_t width, height;
-    
+
 public:
     GLFWwindow *window;
 
     Window(size_t width, size_t height, const std::string &title);
+
+    void processInput() const noexcept;
 
     Window(const Window &) = delete;
     Window &operator=(const Window &) = delete;
@@ -60,7 +66,7 @@ public:
         return std::make_pair(width, height);
     }
 
-    operator GLFWwindow*() noexcept
+    operator GLFWwindow *() noexcept
     {
         return window;
     }
