@@ -2,23 +2,27 @@
 
 #include "vulkan/vulkan.h"
 
-class VulkanRastarization
+namespace sas
 {
-private:
-    VkPipelineRasterizationStateCreateInfo rasterizer{};
-    VkPipelineMultisampleStateCreateInfo multisampling{};
 
-public:
-    VulkanRastarization() noexcept;
-
-    const VkPipelineRasterizationStateCreateInfo& getRasterizer() const noexcept
+    class VulkanRastarization
     {
-        return rasterizer;
-    }
+    private:
+        VkPipelineRasterizationStateCreateInfo rasterizer{};
+        VkPipelineMultisampleStateCreateInfo multisampling{};
 
-    const VkPipelineMultisampleStateCreateInfo& getMultisampling() const noexcept
-    {
-        return multisampling;
-    }
-};
+    public:
+        VulkanRastarization() noexcept;
 
+        [[nodiscard]] const VkPipelineRasterizationStateCreateInfo &getRasterizer() const noexcept
+        {
+            return rasterizer;
+        }
+
+        [[nodiscard]] const VkPipelineMultisampleStateCreateInfo &getMultisampling() const noexcept
+        {
+            return multisampling;
+        }
+    };
+
+} // namespace sas

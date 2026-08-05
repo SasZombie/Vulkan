@@ -3,51 +3,56 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-class VulkanInstanceWrapper
+namespace sas
 {
-private:
-    VkInstance instance;
 
-public:
-    VulkanInstanceWrapper();
-
-    VulkanInstanceWrapper(const VulkanInstanceWrapper &) = delete;
-    VulkanInstanceWrapper &operator=(const VulkanInstanceWrapper &) = delete;
-
-    VulkanInstanceWrapper(VulkanInstanceWrapper &&other) noexcept
-        : instance(other.instance)
+    class VulkanInstanceWrapper
     {
-        other.instance = VK_NULL_HANDLE;
-    }
+    private:
+        VkInstance instance;
 
-    VulkanInstanceWrapper &operator=(VulkanInstanceWrapper &&other) noexcept
-    {
-        if (this != &other)
+    public:
+        VulkanInstanceWrapper();
+
+        VulkanInstanceWrapper(const VulkanInstanceWrapper &) = delete;
+        VulkanInstanceWrapper &operator=(const VulkanInstanceWrapper &) = delete;
+
+        VulkanInstanceWrapper(VulkanInstanceWrapper &&other) noexcept
+            : instance(other.instance)
+        {
+            other.instance = VK_NULL_HANDLE;
+        }
+
+        VulkanInstanceWrapper &operator=(VulkanInstanceWrapper &&other) noexcept
+        {
+            if (this != &other)
+            {
+                if (instance != VK_NULL_HANDLE)
+                {
+                    vkDestroyInstance(instance, nullptr);
+                }
+                instance = other.instance;
+                other.instance = VK_NULL_HANDLE;
+            }
+            return *this;
+        }
+
+        [[nodiscard]] VkInstance getInstance() const noexcept
+        {
+            return instance;
+        }
+        ~VulkanInstanceWrapper() noexcept
         {
             if (instance != VK_NULL_HANDLE)
             {
                 vkDestroyInstance(instance, nullptr);
             }
-            instance = other.instance;
-            other.instance = VK_NULL_HANDLE;
         }
-        return *this;
-    }
 
-    [[nodiscard]] VkInstance getInstance() const noexcept
-    {
-        return instance;
-    }
-    ~VulkanInstanceWrapper() noexcept
-    {
-        if (instance != VK_NULL_HANDLE)
+        operator VkInstance() const noexcept
         {
-            vkDestroyInstance(instance, nullptr);
+            return instance;
         }
-    }
+    };
 
-    operator VkInstance() const noexcept 
-    { 
-        return instance; 
-    }
-};
+} // namespace sas

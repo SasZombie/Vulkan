@@ -23,7 +23,7 @@ static std::vector<char> readFile(const std::string &filename)
     return buffer;
 }
 
-void VulkanShaderPipeline::populateShader(VulkanShader &shader, std::vector<char> &data)
+void sas::VulkanShaderPipeline::populateShader(VulkanShader &shader, std::vector<char> &data)
 {
     VkShaderModuleCreateInfo createInfo;
 
@@ -40,7 +40,7 @@ void VulkanShaderPipeline::populateShader(VulkanShader &shader, std::vector<char
     shader.shaderStageInfo.pName = "main";
 }
 
-VulkanShaderPipeline::VulkanShaderPipeline(VulkanDevice &vulkanDevice)
+sas::VulkanShaderPipeline::VulkanShaderPipeline(VulkanDevice &vulkanDevice)
     : device(vulkanDevice)
 {
     vertShader.shaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;

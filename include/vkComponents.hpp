@@ -7,13 +7,17 @@
 #include "vkRastarization.hpp"
 #include "vkPixelStyling.hpp"
 
-
-struct VulkanPipelineComponents
+namespace sas
 {
-    VulkanBridge* bridge;
-    VulkanShaderPipeline* shaderPipeline;
-    VulkanInputPipeline* inputPipeline;
-    VulkanViewport* viewport;
-    VulkanRastarization* rastar;
-    VulkanPixelStyling* pixelStyling;
-};
+
+    struct VulkanPipelineComponents
+    {
+        VulkanBridge *bridge;
+        VulkanShaderPipeline *shaderPipeline;
+        VulkanInputPipeline *inputPipeline;
+        VulkanViewport *viewport;
+        VulkanRastarization *rastar;
+        VulkanPixelStyling *pixelStyling;
+    };
+
+} // namespace sas

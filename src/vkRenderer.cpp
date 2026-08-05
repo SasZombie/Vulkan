@@ -1,6 +1,6 @@
 #include "vkRenderer.hpp"
 
-VulkanRenderer::VulkanRenderer(Window &nwindow)
+sas::VulkanRenderer::VulkanRenderer(Window &nwindow)
     : window(nwindow),
       vk(),
       vkPhysical(vk),
@@ -14,7 +14,7 @@ VulkanRenderer::VulkanRenderer(Window &nwindow)
 {
 }
 
-void VulkanRenderer::drawFrame() noexcept
+void sas::VulkanRenderer::drawFrame() noexcept
 {
     preFrame();
 
@@ -38,20 +38,20 @@ void VulkanRenderer::drawFrame() noexcept
     vkCommand.advanceFrame();
 }
 
-void VulkanRenderer::preFrame() const noexcept
+void sas::VulkanRenderer::preFrame() const noexcept
 {
     vkWaitForFences(vkDevice, 1, &vkCommand.getFence(), VK_TRUE, UINT64_MAX);
 
 }
 
-void VulkanRenderer::getNextImage(uint32_t &imageIndex) const noexcept
+void sas::VulkanRenderer::getNextImage(uint32_t &imageIndex) const noexcept
 {
     vkAcquireNextImageKHR(vkDevice, vkBridge.getSwapChain(), UINT64_MAX, vkCommand.getImageAvailableSemaphore(), VK_NULL_HANDLE, &imageIndex);
     vkResetFences(vkDevice, 1, &vkCommand.getFence());
 
 }
 
-void VulkanRenderer::recordCommandBuffer() const noexcept
+void sas::VulkanRenderer::recordCommandBuffer() const noexcept
 {
     vkResetCommandBuffer(vkCommand.getCommandBuffer(), 0);
 
@@ -60,7 +60,7 @@ void VulkanRenderer::recordCommandBuffer() const noexcept
     vkBeginCommandBuffer(vkCommand.getCommandBuffer(), &beginInfo);
 }
 
-void VulkanRenderer::imageLayoutTransitionColor(uint32_t imageIndex, VkImageMemoryBarrier2 &barrierToRender) const noexcept
+void sas::VulkanRenderer::imageLayoutTransitionColor(uint32_t imageIndex, VkImageMemoryBarrier2 &barrierToRender) const noexcept
 {
     barrierToRender.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
     barrierToRender.srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -81,7 +81,7 @@ void VulkanRenderer::imageLayoutTransitionColor(uint32_t imageIndex, VkImageMemo
     vkCmdPipelineBarrier2(vkCommand.getCommandBuffer(), &depInfoToRender);
 }
 
-void VulkanRenderer::dynamicRendering(uint32_t imageIndex) const noexcept
+void sas::VulkanRenderer::dynamicRendering(uint32_t imageIndex) const noexcept
 {
     VkRenderingAttachmentInfo colorAttachment{};
     colorAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
@@ -103,7 +103,7 @@ void VulkanRenderer::dynamicRendering(uint32_t imageIndex) const noexcept
     vkCmdBeginRendering(vkCommand.getCommandBuffer(), &renderingInfo);
 }
 
-void VulkanRenderer::drawCall() const noexcept
+void sas::VulkanRenderer::drawCall() const noexcept
 {
     vkCmdBindPipeline(vkCommand.getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, masterPipeline.getGraphicsPipeline());
 
@@ -116,7 +116,7 @@ void VulkanRenderer::drawCall() const noexcept
     vkCmdEndRendering(vkCommand.getCommandBuffer());
 }
 
-void VulkanRenderer::imageLayoutTransitionPresent(VkImageMemoryBarrier2 &barrierToRender) const noexcept
+void sas::VulkanRenderer::imageLayoutTransitionPresent(VkImageMemoryBarrier2 &barrierToRender) const noexcept
 {
     VkImageMemoryBarrier2 barrierToPresent = barrierToRender;
     barrierToPresent.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -133,7 +133,7 @@ void VulkanRenderer::imageLayoutTransitionPresent(VkImageMemoryBarrier2 &barrier
     vkEndCommandBuffer(vkCommand.getCommandBuffer());
 }
 
-void VulkanRenderer::gpuCall(uint32_t imageIndex) const noexcept
+void sas::VulkanRenderer::gpuCall(uint32_t imageIndex) const noexcept
 {
     VkSemaphoreSubmitInfo waitSemaphoreInfo{};
     waitSemaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
@@ -162,7 +162,7 @@ void VulkanRenderer::gpuCall(uint32_t imageIndex) const noexcept
     vkQueueSubmit2(vkDevice.getQueue(), 1, &submitInfo, vkCommand.getFence());
 }
 
-void VulkanRenderer::presentImageToWindow(uint32_t imageIndex) const noexcept
+void sas::VulkanRenderer::presentImageToWindow(uint32_t imageIndex) const noexcept
 {
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;

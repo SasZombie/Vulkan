@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 
-VulkanDevice::VulkanDevice(const VulkanPhysicalDevice& physicalDevice)
+sas::VulkanDevice::VulkanDevice(const VulkanPhysicalDevice& physicalDevice)
 {
     uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);

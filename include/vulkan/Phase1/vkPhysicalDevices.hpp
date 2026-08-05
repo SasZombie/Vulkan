@@ -4,29 +4,34 @@
 #include <vector>
 #include <iostream>
 
-class VulkanInstanceWrapper;
-
-class VulkanPhysicalDevice
+namespace sas
 {
-private:
-    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
-public:
-    [[nodiscard]] VkPhysicalDevice getPhysicalDevice() const noexcept
+    class VulkanInstanceWrapper;
+
+    class VulkanPhysicalDevice
     {
-        return physicalDevice;
-    }
+    private:
+        VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
-    operator VkPhysicalDevice() const noexcept 
-    { 
-        return physicalDevice; 
-    }
+    public:
+        [[nodiscard]] VkPhysicalDevice getPhysicalDevice() const noexcept
+        {
+            return physicalDevice;
+        }
 
-    VulkanPhysicalDevice(const VulkanInstanceWrapper& instanceWrapper);
+        operator VkPhysicalDevice() const noexcept
+        {
+            return physicalDevice;
+        }
 
-    VulkanPhysicalDevice(const VulkanPhysicalDevice&) noexcept = default;
-    VulkanPhysicalDevice& operator=(const VulkanPhysicalDevice&) noexcept = default;
-    VulkanPhysicalDevice(VulkanPhysicalDevice&&) noexcept = default;
-    VulkanPhysicalDevice& operator=(VulkanPhysicalDevice&&) noexcept = default;
-    ~VulkanPhysicalDevice() = default;
-};
+        VulkanPhysicalDevice(const VulkanInstanceWrapper &instanceWrapper);
+
+        VulkanPhysicalDevice(const VulkanPhysicalDevice &) noexcept = default;
+        VulkanPhysicalDevice &operator=(const VulkanPhysicalDevice &) noexcept = default;
+        VulkanPhysicalDevice(VulkanPhysicalDevice &&) noexcept = default;
+        VulkanPhysicalDevice &operator=(VulkanPhysicalDevice &&) noexcept = default;
+        ~VulkanPhysicalDevice() = default;
+    };
+
+} // namespace sas

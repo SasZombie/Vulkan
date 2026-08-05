@@ -5,38 +5,42 @@
 
 #include "vkComponents.hpp"
 
-
-class VulkanMasterPipeline
+namespace sas
 {
-private:
-    VulkanDevice &device;
-    VkPipelineLayout pipelineLayout = nullptr;
-    VkPipeline graphicsPipeline = nullptr;
 
-    void cleanUp() noexcept
+    class VulkanMasterPipeline
     {
-        if(graphicsPipeline)
+    private:
+        VulkanDevice &device;
+        VkPipelineLayout pipelineLayout = nullptr;
+        VkPipeline graphicsPipeline = nullptr;
+
+        void cleanUp() noexcept
         {
-            vkDestroyPipeline(device, graphicsPipeline, nullptr);
+            if (graphicsPipeline)
+            {
+                vkDestroyPipeline(device, graphicsPipeline, nullptr);
+            }
+
+            if (pipelineLayout)
+            {
+
+                vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+            }
         }
 
-        if(pipelineLayout)
+    public:
+        VulkanMasterPipeline(VulkanDevice &vulkanDevice, const VulkanPipelineComponents &components) noexcept;
+
+        [[nodiscard]] const VkPipeline &getGraphicsPipeline() const noexcept
         {
-
-            vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+            return graphicsPipeline;
         }
-    }
 
-public:
-    VulkanMasterPipeline(VulkanDevice &vulkanDevice, const VulkanPipelineComponents& components) noexcept;
+        ~VulkanMasterPipeline() noexcept
+        {
+            cleanUp();
+        }
+    };
 
-    [[nodiscard]] const VkPipeline& getGraphicsPipeline() const noexcept
-    {
-        return graphicsPipeline;
-    }
-
-    ~VulkanMasterPipeline() noexcept
-    {
-        cleanUp();
-    }
-};
+} // namespace sas

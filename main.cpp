@@ -20,6 +20,8 @@
 
 extern "C" const char *__lsan_default_suppressions();
 
+using namespace sas;
+
 int main()
 {
     if (!glfwInit())

@@ -8,7 +8,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-VulkanBridge::VulkanBridge(const Window &window, VulkanInstanceWrapper &instance, const VulkanPhysicalDevice &physicalDevice, VulkanDevice &device)
+sas::VulkanBridge::VulkanBridge(const Window &window, VulkanInstanceWrapper &instance, const VulkanPhysicalDevice &physicalDevice, VulkanDevice &device)
     : vulkanInstance(instance), vulkanDevice(device)
 {
     if (glfwCreateWindowSurface(vulkanInstance, window.window, nullptr, &surface) != VK_SUCCESS)

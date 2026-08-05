@@ -2,29 +2,34 @@
 
 #include "vulkan/vulkan.h"
 
-class Window;
-
-class VulkanViewport
+namespace sas
 {
-    VkViewport viewport;
-    VkRect2D scissor;
-    VkPipelineViewportStateCreateInfo viewportState;
 
-public: 
-    VulkanViewport(const Window& window);
+    class Window;
 
-    const VkViewport& getViewport() const noexcept
+    class VulkanViewport
     {
-        return viewport;
-    }
+        VkViewport viewport;
+        VkRect2D scissor;
+        VkPipelineViewportStateCreateInfo viewportState;
 
-    const VkRect2D& getScissors() const noexcept
-    {
-        return scissor;
-    }
+    public:
+        VulkanViewport(const Window &window);
 
-    const VkPipelineViewportStateCreateInfo& getViewportState() const noexcept
-    {
-        return viewportState;
-    }
-};
+        [[nodiscard]]const VkViewport &getViewport() const noexcept
+        {
+            return viewport;
+        }
+
+        [[nodiscard]]const VkRect2D &getScissors() const noexcept
+        {
+            return scissor;
+        }
+
+        [[nodiscard]]const VkPipelineViewportStateCreateInfo &getViewportState() const noexcept
+        {
+            return viewportState;
+        }
+    };
+
+} // namspace sas

@@ -13,7 +13,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     return VK_FALSE;
 }
 
-VulkanInstanceWrapper::VulkanInstanceWrapper()
+sas::VulkanInstanceWrapper::VulkanInstanceWrapper()
 {
     VkApplicationInfo appInfo{};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;

@@ -7,67 +7,70 @@
 
 #include "Math.hpp"
 
-
-
-class Window
+namespace sas
 {
-private:
-    size_t width, height;
 
-public:
-    GLFWwindow *window;
-
-    Window(size_t width, size_t height, const std::string &title);
-
-    void processInput() const noexcept;
-
-    Window(const Window &) = delete;
-    Window &operator=(const Window &) = delete;
-
-    Window(Window &&other) noexcept : window(other.window)
+    class Window
     {
-        other.window = nullptr;
-    }
+    private:
+        size_t width, height;
 
-    Window &operator=(Window &&other) noexcept
-    {
-        if (this != &other)
+    public:
+        GLFWwindow *window;
+
+        Window(size_t width, size_t height, const std::string &title);
+
+        void processInput() const noexcept;
+
+        Window(const Window &) = delete;
+        Window &operator=(const Window &) = delete;
+
+        Window(Window &&other) noexcept : window(other.window)
+        {
+            other.window = nullptr;
+        }
+
+        Window &operator=(Window &&other) noexcept
+        {
+            if (this != &other)
+            {
+                if (window != nullptr)
+                {
+                    glfwDestroyWindow(window);
+                }
+                window = other.window;
+                other.window = nullptr;
+            }
+            return *this;
+        }
+
+        ~Window() noexcept
         {
             if (window != nullptr)
             {
                 glfwDestroyWindow(window);
             }
-            window = other.window;
-            other.window = nullptr;
         }
-        return *this;
-    }
 
-    ~Window() noexcept
-    {
-        if (window != nullptr)
+        size_t getWidth() const noexcept
         {
-            glfwDestroyWindow(window);
+            return width;
         }
-    }
 
-    size_t getWidth() const noexcept
-    {
-        return width;
-    }
+        size_t getHeight() const noexcept
+        {
+            return height;
+        }
 
-    size_t getHeight() const noexcept
-    {
-        return height;
-    }
+        std::pair<size_t, size_t> getSize() const noexcept
+        {
+            return std::make_pair(width, height);
+        }
 
-    std::pair<size_t, size_t> getSize() const noexcept
-    {
-        return std::make_pair(width, height);
-    }
+        operator GLFWwindow *() noexcept
+        {
+            return window;
+        }
+    };
 
-    operator GLFWwindow *() noexcept
-    {
-        return window;
-    }
-};
+} // namespace sas

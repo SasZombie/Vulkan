@@ -1,6 +1,6 @@
 #include "vkInputPipeline.hpp"
 
-VulkanInputPipeline::VulkanInputPipeline() noexcept
+sas::VulkanInputPipeline::VulkanInputPipeline() noexcept
 {
     inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 

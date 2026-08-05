@@ -3,7 +3,7 @@
 #include "vkInitialize.hpp"
 #include <exception>
 
-VulkanPhysicalDevice::VulkanPhysicalDevice(const VulkanInstanceWrapper& instanceWrapper)
+sas::VulkanPhysicalDevice::VulkanPhysicalDevice(const VulkanInstanceWrapper& instanceWrapper)
 {
 
     uint32_t deviceCount = 0;

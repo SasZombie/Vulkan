@@ -3,7 +3,7 @@
 
 #include <stdexcept>
 
-VulkanCommand::VulkanCommand(VulkanDevice &ndevice)
+sas::VulkanCommand::VulkanCommand(VulkanDevice &ndevice)
     : device(ndevice)
 {
     VkCommandPoolCreateInfo poolInfo{};

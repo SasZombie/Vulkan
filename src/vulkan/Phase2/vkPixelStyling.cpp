@@ -1,6 +1,6 @@
 #include "vkPixelStyling.hpp"
 
-VulkanPixelStyling::VulkanPixelStyling() noexcept
+sas::VulkanPixelStyling::VulkanPixelStyling() noexcept
 {
     depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 

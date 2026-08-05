@@ -2,7 +2,7 @@
 
 #include "window.hpp"
 
-VulkanViewport::VulkanViewport(const Window &window)
+sas::VulkanViewport::VulkanViewport(const Window &window)
 {
     const auto&[width, height] = window.getSize();
     

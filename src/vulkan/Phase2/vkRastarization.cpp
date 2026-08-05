@@ -1,6 +1,6 @@
 #include "vkRastarization.hpp"
 
-VulkanRastarization::VulkanRastarization() noexcept
+sas::VulkanRastarization::VulkanRastarization() noexcept
 {
     rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 

@@ -17,57 +17,62 @@
 
 #include "vkMasterPipeline.hpp"
 
-class VulkanRenderer
+namespace sas
 {
-public:
-    VulkanRenderer(Window &window);
 
-    VulkanRenderer(VulkanRenderer &&) noexcept = default;
-    VulkanRenderer &operator=(VulkanRenderer &&) noexcept = default;
-
-    VulkanRenderer(const VulkanRenderer &) = delete;
-    VulkanRenderer &operator=(const VulkanRenderer &) = delete;
-
-    ~VulkanRenderer() noexcept
+    class VulkanRenderer
     {
-        if(vkDevice.getDevice() != nullptr)
+    public:
+        VulkanRenderer(Window &window);
+
+        VulkanRenderer(VulkanRenderer &&) noexcept = default;
+        VulkanRenderer &operator=(VulkanRenderer &&) noexcept = default;
+
+        VulkanRenderer(const VulkanRenderer &) = delete;
+        VulkanRenderer &operator=(const VulkanRenderer &) = delete;
+
+        ~VulkanRenderer() noexcept
         {
-            vkDeviceWaitIdle(vkDevice);
+            if (vkDevice.getDevice() != nullptr)
+            {
+                vkDeviceWaitIdle(vkDevice);
+            }
         }
-    }
 
-    void drawFrame() noexcept;
+        void drawFrame() noexcept;
 
-private:
-    Window& window;
-    VulkanInstanceWrapper vk;
-    VulkanPhysicalDevice vkPhysical;
-    VulkanDevice vkDevice;
-    VulkanBridge vkBridge;
-    VulkanCommand vkCommand;
+    private:
+        Window &window;
+        VulkanInstanceWrapper vk;
+        VulkanPhysicalDevice vkPhysical;
+        VulkanDevice vkDevice;
+        VulkanBridge vkBridge;
+        VulkanCommand vkCommand;
 
-    VulkanInputPipeline inputPipeline;
-    VulkanShaderPipeline shaderPipeline;
-    VulkanViewport viewPort;
-    VulkanPixelStyling pixelStyle;
-    VulkanRastarization raster;
+        VulkanInputPipeline inputPipeline;
+        VulkanShaderPipeline shaderPipeline;
+        VulkanViewport viewPort;
+        VulkanPixelStyling pixelStyle;
+        VulkanRastarization raster;
 
-    VulkanPipelineComponents components;
-    VulkanMasterPipeline masterPipeline;
+        VulkanPipelineComponents components;
+        VulkanMasterPipeline masterPipeline;
 
-    void preFrame() const noexcept;
-    void getNextImage(uint32_t& imageIndex) const noexcept;
+        void preFrame() const noexcept;
+        void getNextImage(uint32_t &imageIndex) const noexcept;
 
-    void recordCommandBuffer() const noexcept;
-    void imageLayoutTransitionColor(uint32_t imageIndex, VkImageMemoryBarrier2& barrierToRender) const noexcept;
+        void recordCommandBuffer() const noexcept;
+        void imageLayoutTransitionColor(uint32_t imageIndex, VkImageMemoryBarrier2 &barrierToRender) const noexcept;
 
-    void dynamicRendering(uint32_t imageIndex) const noexcept;
+        void dynamicRendering(uint32_t imageIndex) const noexcept;
 
-    void drawCall() const noexcept;
+        void drawCall() const noexcept;
 
-    void imageLayoutTransitionPresent(VkImageMemoryBarrier2& barrierToRender) const noexcept;
+        void imageLayoutTransitionPresent(VkImageMemoryBarrier2 &barrierToRender) const noexcept;
 
-    void gpuCall(uint32_t imageIndex) const noexcept;
+        void gpuCall(uint32_t imageIndex) const noexcept;
 
-    void presentImageToWindow(uint32_t imageIndex) const noexcept;
-};
+        void presentImageToWindow(uint32_t imageIndex) const noexcept;
+    };
+
+} // namespace sas

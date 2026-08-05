@@ -2,24 +2,26 @@
 
 #include "vulkan/vulkan.h"
 
-
-class VulkanInputPipeline
+namespace sas
 {
-private:
-    VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
-    VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 
-public:
-    VulkanInputPipeline() noexcept;
-
-    [[nodiscard]] const VkPipelineInputAssemblyStateCreateInfo& getInputAssembly() const noexcept
+    class VulkanInputPipeline
     {
-        return inputAssembly;
-    }
+    private:
+        VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
+        VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 
-    [[nodiscard]] const VkPipelineVertexInputStateCreateInfo& getVertexInput() const noexcept
-    {
-        return vertexInputInfo;
-    }
-    
-};
+    public:
+        VulkanInputPipeline() noexcept;
+
+        [[nodiscard]] const VkPipelineInputAssemblyStateCreateInfo &getInputAssembly() const noexcept
+        {
+            return inputAssembly;
+        }
+
+        [[nodiscard]] const VkPipelineVertexInputStateCreateInfo &getVertexInput() const noexcept
+        {
+            return vertexInputInfo;
+        }
+    };
+} // namespace sas

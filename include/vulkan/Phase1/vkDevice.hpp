@@ -2,6 +2,10 @@
 
 #include <vulkan/vulkan.h>
 
+namespace sas
+{
+    
+
 class VulkanPhysicalDevice;
 
 class VulkanDevice
@@ -66,3 +70,4 @@ public:
         return graphicsQueueFamilyIndex;
     }
 };
+} // namespace sas

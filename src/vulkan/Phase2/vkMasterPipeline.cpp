@@ -1,6 +1,6 @@
 #include "vkMasterPipeline.hpp"
 
-VulkanMasterPipeline::VulkanMasterPipeline(VulkanDevice &vulkanDevice, const VulkanPipelineComponents &components) noexcept
+sas::VulkanMasterPipeline::VulkanMasterPipeline(VulkanDevice &vulkanDevice, const VulkanPipelineComponents &components) noexcept
     : device(vulkanDevice)
 {
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};

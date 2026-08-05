@@ -2,32 +2,33 @@
 
 #include "vulkan/vulkan.h"
 
-class VulkanPixelStyling
+namespace sas
 {
-private:
 
-    VkPipelineColorBlendStateCreateInfo colorBlending{};
-    VkPipelineDepthStencilStateCreateInfo depthStencil{};
-
-    VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-    
-public:
-    VulkanPixelStyling() noexcept;
-
-
-    const VkPipelineColorBlendAttachmentState& getColorBlendAttachment() const noexcept
+    class VulkanPixelStyling
     {
-        return colorBlendAttachment;
-    }
+    private:
+        VkPipelineColorBlendStateCreateInfo colorBlending{};
+        VkPipelineDepthStencilStateCreateInfo depthStencil{};
 
-    const VkPipelineDepthStencilStateCreateInfo& getDepthStencil() const noexcept
-    {
-        return depthStencil;
-    }
+        VkPipelineColorBlendAttachmentState colorBlendAttachment{};
 
-    const VkPipelineColorBlendStateCreateInfo& getColorBlending() const noexcept
-    {
-        return colorBlending;
-    }
+    public:
+        VulkanPixelStyling() noexcept;
 
-};
+        [[nodiscard]] const VkPipelineColorBlendAttachmentState &getColorBlendAttachment() const noexcept
+        {
+            return colorBlendAttachment;
+        }
+
+        [[nodiscard]] const VkPipelineDepthStencilStateCreateInfo &getDepthStencil() const noexcept
+        {
+            return depthStencil;
+        }
+
+        [[nodiscard]] const VkPipelineColorBlendStateCreateInfo &getColorBlending() const noexcept
+        {
+            return colorBlending;
+        }
+    };
+} // namespace sas

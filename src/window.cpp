@@ -1,7 +1,7 @@
 #include "window.hpp"
 #include <stdexcept>
 
-Window::Window(size_t nwidth, size_t nheight, const std::string &title)
+sas::Window::Window(size_t nwidth, size_t nheight, const std::string &title)
     : width(nwidth), height(nheight)
 {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
