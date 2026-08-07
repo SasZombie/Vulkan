@@ -1,5 +1,5 @@
 #include "vkInputPipeline.hpp"
-#include "vertex.hpp"
+#include "Vertex.hpp"
 
 sas::VulkanInputPipeline::VulkanInputPipeline() noexcept
 {

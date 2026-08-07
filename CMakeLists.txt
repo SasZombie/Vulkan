@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(Vulkan)
+project(CrimsonBlossom)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -31,7 +31,10 @@ SET(GLOBAL_SOURCES
     src/Window.cpp
     src/vkRenderer.cpp
     src/Camera.cpp
-    src/Scene.cpp
+    src/SceneNode.cpp
+    src/CrimsonBlossom.cpp
+    src/AssetManager.cpp
+    src/Vertex.cpp
 )
 
 SET(PHASE_1_SOURCES

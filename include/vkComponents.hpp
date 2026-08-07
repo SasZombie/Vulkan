@@ -25,4 +25,11 @@ namespace sas
         VulkanPixelStyling *pixelStyling;
     };
 
+    struct RenderObject
+    {
+        VkBuffer vertexBuffer;
+        VkBuffer indexBuffer;
+        size_t indexCount;
+    };
+
 } // namespace sas

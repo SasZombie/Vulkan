@@ -40,9 +40,9 @@ namespace sas
             }
         }
 
-        void drawFrame() noexcept;
+        void drawFrame(const RenderObject& obj) noexcept;
 
-    private:
+    public:
         Window &window;
         Camera &camera;
         VulkanInstanceWrapper vk;
@@ -68,7 +68,7 @@ namespace sas
 
         void dynamicRendering(uint32_t imageIndex) const noexcept;
 
-        void drawCall() const noexcept;
+        void drawCall(const RenderObject& renderObj) const noexcept;
 
         void imageLayoutTransitionPresent(VkImageMemoryBarrier2 &barrierToRender) const noexcept;
 

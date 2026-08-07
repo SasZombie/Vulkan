@@ -16,9 +16,10 @@
 
 #include "vkMasterPipeline.hpp"
 
-#include "vkRenderer.hpp"
+#include "Vertex.hpp"
 
-#include "vertex.hpp"
+#include "CrimsonBlossom.hpp"
+#include "AssetManager.hpp"
 
 extern "C" const char *__lsan_default_suppressions();
 
@@ -43,12 +44,25 @@ int main()
     Window window(800, 600, "Meow");
     Camera camera{math::Vec3{0, 0, 3.f}};
     {
-        VulkanRenderer vkRenderer(window, camera);
+
+        sas::CrimsonBlossom engine{window, camera};
+
+        Scene firstScene;
+
+        uint32_t firstEntity = firstScene.sceneRegistry.createEntity();
+
+        MeshComponent m1 = engine.assetManager.loadMesh("smekerie");
+        RenderObject renObj = engine.createBuffer(m1);
+
+        firstScene.sceneRegistry.addComponent(firstEntity, renObj);
+
+        engine.addScene(firstScene);
+
         while (!glfwWindowShouldClose(window))
         {
             glfwPollEvents();
             window.processInput(camera);
-            vkRenderer.drawFrame();
+            engine.update();
         }
     }
 
