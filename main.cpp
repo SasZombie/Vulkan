@@ -16,7 +16,7 @@
 
 #include "vkMasterPipeline.hpp"
 
-#include "Vertex.hpp"
+#include "Mesh.hpp"
 
 #include "CrimsonBlossom.hpp"
 #include "AssetManager.hpp"

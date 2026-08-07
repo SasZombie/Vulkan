@@ -6,7 +6,7 @@
 #include <memory>
 #include <typeindex>
 
-#include "Components.hpp"
+#include "ComponentContainer.hpp"
 
 namespace sas
 {

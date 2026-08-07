@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 
-#include "Registry.hpp"
+#include "EntityRegistry.hpp"
 
 namespace sas
 {

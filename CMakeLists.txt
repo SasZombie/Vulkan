@@ -34,7 +34,7 @@ SET(GLOBAL_SOURCES
     src/SceneNode.cpp
     src/CrimsonBlossom.cpp
     src/AssetManager.cpp
-    src/Vertex.cpp
+    src/Mesh.cpp
 )
 
 SET(PHASE_1_SOURCES

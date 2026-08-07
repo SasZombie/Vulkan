@@ -3,7 +3,7 @@
 #include <vector>
 #include <memory>
 
-#include "Vertex.hpp"
+#include "Mesh.hpp"
 
 namespace sas
 {

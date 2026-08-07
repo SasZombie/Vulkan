@@ -21,11 +21,11 @@ sas::MeshComponent sas::AssetManager::loadMesh(const std::string &path) noexcept
         {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
         {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}};
 
-
     const std::vector<int> indices = {
         0, 1, 2, // First triangle
         2, 3, 0  // Second triangle
     };
+
     Mesh m1;
     m1.indices = indices;
     m1.vertices = vertices;
@@ -42,7 +42,8 @@ sas::MeshComponent sas::AssetManager::loadMesh(const std::string &path) noexcept
 
 void sas::AssetManager::unloadMesh(const MeshComponent &comp) noexcept
 {
-   if(!isValid(comp)) return;
+    if (!isValid(comp))
+        return;
 
     slots[comp.id].mesh; // unload resource
 
@@ -57,15 +58,13 @@ void sas::AssetManager::unloadMesh(const MeshComponent &comp) noexcept
 
 bool sas::AssetManager::isValid(const MeshComponent &handle) const noexcept
 {
-    
-        if (handle.id >= slots.size())
-            return false;
-        if (!slots[handle.id].active)
-            return false;
-        if (slots[handle.id].generation != handle.generation)
-            return false; 
-        return true;
-    
+    if (handle.id >= slots.size())
+        return false;
+    if (!slots[handle.id].active)
+        return false;
+    if (slots[handle.id].generation != handle.generation)
+        return false;
+    return true;
 }
 
 // std::shared_ptr<sas::Mesh> sas::AssetManager::loadMesh(const std::string &path, const std::shared_ptr<std::vector<Texture>> &tex) noexcept

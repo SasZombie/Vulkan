@@ -1,4 +1,4 @@
-#include "Vertex.hpp"
+#include "Mesh.hpp"
 
 // Mesh::Mesh(std::vector<Vertex> nVertices, std::vector<int> nIndices, const std::filesystem::path& pth) noexcept
 // 	: vertices(nVertices), indices(nIndices), path(pth)
