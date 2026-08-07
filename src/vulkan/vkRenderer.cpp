@@ -12,7 +12,7 @@ sas::VulkanRenderer::VulkanRenderer(Window &nwindow, Camera &ncamera, VulkanLowL
 }
 
 
-void sas::VulkanRenderer::drawFrame(const RenderObject& renderObj) noexcept
+void sas::VulkanRenderer::drawFrame(const std::vector<RenderObject>& objectsToRender) noexcept
 {
     preFrame();
 
@@ -26,7 +26,15 @@ void sas::VulkanRenderer::drawFrame(const RenderObject& renderObj) noexcept
 
     dynamicRendering(imageIndex);
 
-    drawCall(renderObj);
+
+    for(const auto& renderObj : objectsToRender)
+    {
+        drawCallRecorder(renderObj);
+    }
+
+    vkCmdEndRendering(vulkanLowLvl.vkCommand.getCommandBuffer());
+
+    
     imageLayoutTransitionPresent(barrierToRender);
 
     gpuCall(imageIndex);
@@ -58,6 +66,8 @@ void sas::VulkanRenderer::recordCommandBuffer() const noexcept
 
 void sas::VulkanRenderer::imageLayoutTransitionColor(uint32_t imageIndex, VkImageMemoryBarrier2 &barrierToRender) const noexcept
 {
+    barrierToRender.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrierToRender.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrierToRender.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
     barrierToRender.srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
     barrierToRender.srcAccessMask = 0;
@@ -69,6 +79,9 @@ void sas::VulkanRenderer::imageLayoutTransitionColor(uint32_t imageIndex, VkImag
     barrierToRender.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     barrierToRender.subresourceRange.levelCount = 1;
     barrierToRender.subresourceRange.layerCount = 1;
+
+    barrierToRender.subresourceRange.baseArrayLayer = 0;
+    barrierToRender.subresourceRange.baseArrayLayer = 0;
 
     VkDependencyInfo depInfoToRender{};
     depInfoToRender.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
@@ -100,19 +113,17 @@ void sas::VulkanRenderer::dynamicRendering(uint32_t imageIndex) const noexcept
 }
 
 
-void sas::VulkanRenderer::drawCall(const RenderObject& renderObj) const noexcept
+void sas::VulkanRenderer::drawCallRecorder(const RenderObject& renderObj) const noexcept
 {
     vkCmdBindPipeline(vulkanLowLvl.vkCommand.getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, masterPipeline.getGraphicsPipeline());
 
     vkCmdSetViewport(vulkanLowLvl.vkCommand.getCommandBuffer(), 0, 1, &viewPort.getViewport());
     vkCmdSetScissor(vulkanLowLvl.vkCommand.getCommandBuffer(), 0, 1, &viewPort.getScissors());
 
-    // const auto [vertex, index] = actualCreateBuffer(vkDevice, vkPhysical);
     VkBuffer buffers[] = {renderObj.vertexBuffer};
 
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(vulkanLowLvl.vkCommand.getCommandBuffer(), 0, 1, buffers, offsets);
-
     vkCmdBindIndexBuffer(vulkanLowLvl.vkCommand.getCommandBuffer(), renderObj.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
     PushConstants constants{camera.getMVP()};
@@ -125,16 +136,7 @@ void sas::VulkanRenderer::drawCall(const RenderObject& renderObj) const noexcept
         sizeof(PushConstants),
         &constants.mvp);
 
-    // vkCmdDraw(vkCommand.getCommandBuffer(), 3, 1, 0, 0);
-
-    // const std::vector<uint32_t> indices2 = {
-    //     0, 1, 2, // First triangle
-    //     2, 3, 0  // Second triangle
-    // };
-
     vkCmdDrawIndexed(vulkanLowLvl.vkCommand.getCommandBuffer(), static_cast<uint32_t>(renderObj.indexCount), 1, 0, 0, 0);
-
-    vkCmdEndRendering(vulkanLowLvl.vkCommand.getCommandBuffer());
 }
 
 void sas::VulkanRenderer::imageLayoutTransitionPresent(VkImageMemoryBarrier2 &barrierToRender) const noexcept

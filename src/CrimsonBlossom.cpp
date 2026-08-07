@@ -11,11 +11,9 @@ void sas::CrimsonBlossom::update() noexcept
 {
 
     const auto& allMeshComp = scenes[0].sceneRegistry.getComponents<RenderObject>();
-
-    for(const auto& renderObject : allMeshComp->getData())
-    {
-        vkRenderer.drawFrame(renderObject);
-    }
+    
+    vkRenderer.drawFrame(allMeshComp->getData());
+    
     
 
 }

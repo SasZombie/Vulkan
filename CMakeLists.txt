@@ -29,7 +29,7 @@ find_package(glm REQUIRED)
 
 SET(GLOBAL_SOURCES
     src/Window.cpp
-    src/vkRenderer.cpp
+    src/vulkan/vkRenderer.cpp
     src/Camera.cpp
     src/SceneNode.cpp
     src/CrimsonBlossom.cpp
@@ -63,12 +63,11 @@ add_subdirectory(deps/Engine)
 
 target_include_directories(main PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan
     ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/Phase1
     ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/Phase2
     ${CMAKE_CURRENT_SOURCE_DIR}/deps/Engine/lib/include
-
 )
-
 
 target_link_libraries(main PRIVATE
     Vulkan::Vulkan

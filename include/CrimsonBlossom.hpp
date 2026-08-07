@@ -8,7 +8,6 @@ namespace sas
 {
     class CrimsonBlossom
     {
-    private:
     public:
         VulkanLowLevel vulkanLowLvl;
         VulkanRenderer vkRenderer;

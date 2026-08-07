@@ -52,6 +52,8 @@ namespace sas
     {
         VkBuffer vertexBuffer;
         VkBuffer indexBuffer;
+        VkDeviceMemory vertexBufferMemory;
+        VkDeviceMemory indexBufferMemory;
         size_t indexCount;
     };
 

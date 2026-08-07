@@ -40,7 +40,7 @@ namespace sas
             }
         }
 
-        void drawFrame(const RenderObject& obj) noexcept;
+        void drawFrame(const std::vector<RenderObject>& objectsToRender) noexcept;
 
     public:
         Window &window;
@@ -64,7 +64,7 @@ namespace sas
 
         void dynamicRendering(uint32_t imageIndex) const noexcept;
 
-        void drawCall(const RenderObject& renderObj) const noexcept;
+        void drawCallRecorder(const RenderObject& renderObj) const noexcept;
 
         void imageLayoutTransitionPresent(VkImageMemoryBarrier2 &barrierToRender) const noexcept;
 

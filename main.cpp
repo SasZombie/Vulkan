@@ -41,9 +41,9 @@ int main()
         throw std::runtime_error("Vulkan is NOT supported on this system!");
     }
 
-    Window window(800, 600, "Meow");
-    Camera camera{math::Vec3{0, 0, 3.f}};
     {
+        Window window(800, 600, "Meow");
+        Camera camera{math::Vec3{0, 0, 3.f}};
 
         sas::CrimsonBlossom engine{window, camera};
 
@@ -51,12 +51,8 @@ int main()
 
         uint32_t firstEntity = firstScene.sceneRegistry.createEntity();
 
-        // MeshComponent m1 = engine.assetManager.loadMesh("smekerie");
-        // RenderObject renObj = engine.createBuffer(m1);
-
-        RenderObject renObj = engine.assetManager.loadMesh("smekerie");
+        RenderObject renObj = engine.assetManager.loadMesh("objects/sphere.obj");
         
-
         firstScene.sceneRegistry.addComponent(firstEntity, renObj);
 
         engine.addScene(firstScene);

@@ -13,8 +13,9 @@ namespace sas
     struct Vertex
     {
         math::Vec3 pos;
-        math::Vec3 color;
+        math::Vec3 normals;
         math::Vec2 texCoord;
+        math::Vec3 color;
     };
 
     struct Texture
@@ -32,7 +33,6 @@ namespace sas
     class Mesh
     {
     public:
-        uint32_t meshId = 0;
         std::vector<Vertex> vertices;
         std::vector<int> indices;
 
