@@ -6,7 +6,11 @@
 #include "vkViewport.hpp"
 #include "vkRastarization.hpp"
 #include "vkPixelStyling.hpp"
+#include "vkPhysicalDevices.hpp"
+#include "vkCommand.hpp"
+
 #include "Math.hpp"
+
 namespace sas
 {
 
@@ -23,6 +27,25 @@ namespace sas
         VulkanViewport *viewport;
         VulkanRastarization *rastar;
         VulkanPixelStyling *pixelStyling;
+    };
+
+    class VulkanLowLevel
+    {
+    public:
+        VulkanInstanceWrapper vk;
+        VulkanPhysicalDevice vkPhysical;
+        VulkanDevice vkDevice;
+        VulkanBridge vkBridge;
+        VulkanCommand vkCommand;
+
+        VulkanLowLevel(const Window &window) noexcept
+            : vk(),
+              vkPhysical(vk),
+              vkDevice(vkPhysical),
+              vkBridge(window, vk, vkPhysical, vkDevice),
+              vkCommand(vkDevice)
+        {
+        }
     };
 
     struct RenderObject

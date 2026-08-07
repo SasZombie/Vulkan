@@ -10,6 +10,7 @@ namespace sas
     {
     private:
     public:
+        VulkanLowLevel vulkanLowLvl;
         VulkanRenderer vkRenderer;
         AssetManager assetManager;
         std::vector<Scene> scenes;
@@ -17,8 +18,9 @@ namespace sas
         RenderObject createBuffer(const MeshComponent& component) const noexcept;
 
         CrimsonBlossom(Window &window, Camera& camera) noexcept
-            : vkRenderer(window, camera)
+            : vulkanLowLvl(window), vkRenderer(window, camera, vulkanLowLvl), assetManager(vulkanLowLvl)
         {}
+
         void addScene(Scene newScene) noexcept
         {
             scenes.push_back(std::move(newScene));

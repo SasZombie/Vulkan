@@ -51,8 +51,11 @@ int main()
 
         uint32_t firstEntity = firstScene.sceneRegistry.createEntity();
 
-        MeshComponent m1 = engine.assetManager.loadMesh("smekerie");
-        RenderObject renObj = engine.createBuffer(m1);
+        // MeshComponent m1 = engine.assetManager.loadMesh("smekerie");
+        // RenderObject renObj = engine.createBuffer(m1);
+
+        RenderObject renObj = engine.assetManager.loadMesh("smekerie");
+        
 
         firstScene.sceneRegistry.addComponent(firstEntity, renObj);
 

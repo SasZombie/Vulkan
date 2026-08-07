@@ -24,7 +24,7 @@ namespace sas
     class VulkanRenderer
     {
     public:
-        VulkanRenderer(Window &window, Camera& camera);
+        VulkanRenderer(Window &window, Camera& camera, VulkanLowLevel& vulkanLowLvl);
 
         VulkanRenderer(VulkanRenderer &&) noexcept = default;
         VulkanRenderer &operator=(VulkanRenderer &&) noexcept = default;
@@ -34,9 +34,9 @@ namespace sas
 
         ~VulkanRenderer() noexcept
         {
-            if (vkDevice.getDevice() != nullptr)
+            if (vulkanLowLvl.vkDevice.getDevice() != nullptr)
             {
-                vkDeviceWaitIdle(vkDevice);
+                vkDeviceWaitIdle(vulkanLowLvl.vkDevice);
             }
         }
 
@@ -45,11 +45,7 @@ namespace sas
     public:
         Window &window;
         Camera &camera;
-        VulkanInstanceWrapper vk;
-        VulkanPhysicalDevice vkPhysical;
-        VulkanDevice vkDevice;
-        VulkanBridge vkBridge;
-        VulkanCommand vkCommand;
+        VulkanLowLevel& vulkanLowLvl;
 
         VulkanInputPipeline inputPipeline;
         VulkanShaderPipeline shaderPipeline;

@@ -4,43 +4,21 @@
 #include <memory>
 
 #include "Mesh.hpp"
+#include "vkComponents.hpp"
 
 namespace sas
 {
     class AssetManager
     {
     private:
-        struct Slot
-        {
-            Mesh mesh;
-            uint32_t generation = 0; 
-            bool active = false;
-
-            uint32_t nextFreeIndex = 0;
-        };
-        
-        std::vector<Slot> slots;
-        uint32_t firstFreeIndex = 0;
-        uint32_t activeCount = 0;
+        VulkanLowLevel& vulkanCtx;
 
     public:
-
-        const Mesh* getMesh(const MeshComponent& component) const noexcept 
+        AssetManager(VulkanLowLevel &ctx)
+            : vulkanCtx(ctx)
         {
-            if(isValid(component))
-            {
-                return &slots[component.id].mesh;
-            }
-
-            return nullptr;
         }
-
-        MeshComponent loadMesh(const std::string& path) noexcept;
-        
-        void unloadMesh(const MeshComponent& comp) noexcept;
-
-        bool isValid(const MeshComponent& handle) const noexcept;
-
+        RenderObject loadMesh(const std::string &path) noexcept;
     };
 
 } // namespace sas
