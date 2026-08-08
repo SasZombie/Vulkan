@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vulkan/vulkan.h"
+#include "volk.h"
 
 #include "vkDevice.hpp"
 #include <vector>
@@ -10,8 +10,8 @@ namespace sas
 
     struct VulkanShader
     {
-        VkShaderModule shaderModule;
-        VkPipelineShaderStageCreateInfo shaderStageInfo{};
+        VkShaderEXT shaderModule;
+        VkShaderCreateInfoEXT shaderStageInfo{};
     };
 
     class VulkanShaderPipeline
@@ -20,8 +20,6 @@ namespace sas
         VulkanDevice &device;
         VulkanShader vertShader;
         VulkanShader fragShader;
-
-        void populateShader(VulkanShader &shader, std::vector<char> &data);
 
     public:
         VulkanShaderPipeline(VulkanDevice &vulkanDevice);
@@ -46,12 +44,12 @@ namespace sas
             {
                 if (vertShader.shaderModule)
                 {
-                    vkDestroyShaderModule(device, vertShader.shaderModule, nullptr);
+                    vkDestroyShaderEXT(device, vertShader.shaderModule, nullptr);
                 }
 
                 if (fragShader.shaderModule)
                 {
-                    vkDestroyShaderModule(device, fragShader.shaderModule, nullptr);
+                    vkDestroyShaderEXT(device, fragShader.shaderModule, nullptr);
                 }
 
                 vertShader.shaderModule = other.vertShader.shaderModule;
@@ -66,12 +64,12 @@ namespace sas
         {
             if (vertShader.shaderModule)
             {
-                vkDestroyShaderModule(device, vertShader.shaderModule, nullptr);
+                vkDestroyShaderEXT(device, vertShader.shaderModule, nullptr);
             }
 
             if (fragShader.shaderModule)
             {
-                vkDestroyShaderModule(device, fragShader.shaderModule, nullptr);
+                vkDestroyShaderEXT(device, fragShader.shaderModule, nullptr);
             }
         }
     };

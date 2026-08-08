@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.12)
 project(CrimsonBlossom)
 
+add_compile_definitions(VK_NO_PROTOTYPES)
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -25,7 +27,12 @@ endif()
 
 find_package(Vulkan REQUIRED)
 find_package(glfw3 REQUIRED)
-find_package(glm REQUIRED)
+
+add_library(volk STATIC deps/volk.c)
+
+target_include_directories(volk PUBLIC deps)
+target_link_libraries(volk PUBLIC Vulkan::Headers ${CMAKE_DL_LIBS})
+
 
 SET(GLOBAL_SOURCES
     src/Window.cpp
@@ -67,12 +74,13 @@ target_include_directories(main PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/Phase1
     ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/Phase2
     ${CMAKE_CURRENT_SOURCE_DIR}/deps/Engine/lib/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/deps/
+    
 )
 
 target_link_libraries(main PRIVATE
-    Vulkan::Vulkan
+    volk
     glfw
-    glm::glm
     sas_physics
     project_warnings_vulkan
     project_sanitizers_vulkan

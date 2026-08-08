@@ -1,5 +1,7 @@
 #include "vkInitialize.hpp"
 
+#include "volk.h"
+
 #include <iostream>
 #include <vector>
 
@@ -15,6 +17,11 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 
 sas::VulkanInstanceWrapper::VulkanInstanceWrapper()
 {
+    if (volkInitialize() != VK_SUCCESS)
+    {
+        throw std::runtime_error("Failed to initialize volk!");
+    }
+
     VkApplicationInfo appInfo{};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pApplicationName = "Vulkan App";
@@ -41,7 +48,6 @@ sas::VulkanInstanceWrapper::VulkanInstanceWrapper()
 
     debugCreateInfo.pfnUserCallback = debugCallback;
 
-
     VkInstanceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     createInfo.pApplicationInfo = &appInfo;
@@ -52,11 +58,14 @@ sas::VulkanInstanceWrapper::VulkanInstanceWrapper()
     createInfo.enabledLayerCount = 1;
     createInfo.ppEnabledLayerNames = &validationLayer;
 
-    createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
+    createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT *)&debugCreateInfo;
 
     const auto &result = vkCreateInstance(&createInfo, nullptr, &instance);
     if (result != VK_SUCCESS)
     {
         std::runtime_error("Cannot create vk instance");
     }
+   
+
+    volkLoadInstance(instance);
 }

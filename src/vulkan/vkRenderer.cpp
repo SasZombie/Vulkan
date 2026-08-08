@@ -1,6 +1,6 @@
 #include "vkRenderer.hpp"
-
-sas::VulkanRenderer::VulkanRenderer(Window &nwindow, Camera &ncamera, VulkanLowLevel& nvulkanLowLvl)
+#include "Mesh.hpp"
+sas::VulkanRenderer::VulkanRenderer(Window &nwindow, Camera &ncamera, VulkanLowLevel &nvulkanLowLvl)
     : window(nwindow),
       camera(ncamera),
       vulkanLowLvl(nvulkanLowLvl),
@@ -11,8 +11,7 @@ sas::VulkanRenderer::VulkanRenderer(Window &nwindow, Camera &ncamera, VulkanLowL
 {
 }
 
-
-void sas::VulkanRenderer::drawFrame(const std::vector<RenderObject>& objectsToRender) noexcept
+void sas::VulkanRenderer::drawFrame(const std::vector<RenderObject> &objectsToRender) noexcept
 {
     preFrame();
 
@@ -26,15 +25,13 @@ void sas::VulkanRenderer::drawFrame(const std::vector<RenderObject>& objectsToRe
 
     dynamicRendering(imageIndex);
 
-
-    for(const auto& renderObj : objectsToRender)
+    for (const auto &renderObj : objectsToRender)
     {
         drawCallRecorder(renderObj);
     }
 
     vkCmdEndRendering(vulkanLowLvl.vkCommand.getCommandBuffer());
 
-    
     imageLayoutTransitionPresent(barrierToRender);
 
     gpuCall(imageIndex);
@@ -112,32 +109,87 @@ void sas::VulkanRenderer::dynamicRendering(uint32_t imageIndex) const noexcept
     vkCmdBeginRendering(vulkanLowLvl.vkCommand.getCommandBuffer(), &renderingInfo);
 }
 
-
-void sas::VulkanRenderer::drawCallRecorder(const RenderObject& renderObj) const noexcept
+void sas::VulkanRenderer::drawCallRecorder(const RenderObject &renderObj) const noexcept
 {
-    vkCmdBindPipeline(vulkanLowLvl.vkCommand.getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, masterPipeline.getGraphicsPipeline());
+    const auto &rasterInfo = raster.getRasterizer();
+    const auto &comandBuff = vulkanLowLvl.vkCommand.getCommandBuffer();
 
-    vkCmdSetViewport(vulkanLowLvl.vkCommand.getCommandBuffer(), 0, 1, &viewPort.getViewport());
-    vkCmdSetScissor(vulkanLowLvl.vkCommand.getCommandBuffer(), 0, 1, &viewPort.getScissors());
+    vkCmdSetPrimitiveTopologyEXT(vulkanLowLvl.vkCommand.getCommandBuffer(), inputPipeline.getInputAssembly().topology);
+    vkCmdSetPolygonModeEXT(vulkanLowLvl.vkCommand.getCommandBuffer(), rasterInfo.polygonMode);
+    vkCmdSetCullModeEXT(vulkanLowLvl.vkCommand.getCommandBuffer(), rasterInfo.cullMode);
+    vkCmdSetFrontFaceEXT(vulkanLowLvl.vkCommand.getCommandBuffer(), rasterInfo.frontFace);
 
-    VkBuffer buffers[] = {renderObj.vertexBuffer};
+    vkCmdSetViewport(comandBuff, 0, 1, &viewPort.getViewport());
+    vkCmdSetScissor(comandBuff, 0, 1, &viewPort.getScissors());
+
+    VkBool32 blendEnable = VK_FALSE;
+    vkCmdSetColorBlendEnableEXT(comandBuff, 0, 1, &blendEnable);
+    VkColorComponentFlags colorMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                                      VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    vkCmdSetColorWriteMaskEXT(comandBuff, 0, 1, &colorMask);
+
+    VkVertexInputBindingDescription2EXT bindingDesc{};
+    bindingDesc.sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_BINDING_DESCRIPTION_2_EXT;
+    bindingDesc.binding = 0;
+    bindingDesc.stride = sizeof(Vertex);
+    bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+    VkVertexInputAttributeDescription2EXT attrDesc[2]{};
+    attrDesc[0].sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT;
+    attrDesc[0].location = 0; // inPosition
+    attrDesc[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+    attrDesc[0].offset = offsetof(Vertex, pos);
+
+    attrDesc[1].sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT;
+    attrDesc[1].location = 1; // inColor
+    attrDesc[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+    attrDesc[1].offset = offsetof(Vertex, color);
+
+    vkCmdSetVertexInputEXT(comandBuff, 1, &bindingDesc, 2, attrDesc);
+
+    VkShaderStageFlagBits stages[] = {VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT};
+    const auto &[vert, frag] = renderObj.shader->getShaderStages();
+
+    VkShaderEXT shaders[] = {vert.shaderModule, frag.shaderModule};
+
+    vkCmdBindShadersEXT(comandBuff, 2, stages, shaders);
 
     VkDeviceSize offsets[] = {0};
-    vkCmdBindVertexBuffers(vulkanLowLvl.vkCommand.getCommandBuffer(), 0, 1, buffers, offsets);
-    vkCmdBindIndexBuffer(vulkanLowLvl.vkCommand.getCommandBuffer(), renderObj.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdBindVertexBuffers(comandBuff, 0, 1, &renderObj.vertexBuffer, offsets);
+    vkCmdBindIndexBuffer(comandBuff, renderObj.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
     PushConstants constants{camera.getMVP()};
 
-    vkCmdPushConstants(
-        vulkanLowLvl.vkCommand.getCommandBuffer(),
-        masterPipeline.getGraphicsPipelineLayout(),
-        VK_SHADER_STAGE_VERTEX_BIT,
-        0,
-        sizeof(PushConstants),
-        &constants.mvp);
+    vkCmdPushConstants(comandBuff, VK_NULL_HANDLE, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstants), &constants);
+    vkCmdDrawIndexed(comandBuff, renderObj.indexCount, 1, 0, 0, 0);
 
-    vkCmdDrawIndexed(vulkanLowLvl.vkCommand.getCommandBuffer(), static_cast<uint32_t>(renderObj.indexCount), 1, 0, 0, 0);
 }
+
+// void sas::VulkanRenderer::drawCallRecorder(const RenderObject& renderObj) const noexcept
+// {
+//     vkCmdBindPipeline(vulkanLowLvl.vkCommand.getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, masterPipeline.getGraphicsPipeline());
+
+//     vkCmdSetViewport(vulkanLowLvl.vkCommand.getCommandBuffer(), 0, 1, &viewPort.getViewport());
+//     vkCmdSetScissor(vulkanLowLvl.vkCommand.getCommandBuffer(), 0, 1, &viewPort.getScissors());
+
+//     VkBuffer buffers[] = {renderObj.vertexBuffer};
+
+//     VkDeviceSize offsets[] = {0};
+//     vkCmdBindVertexBuffers(vulkanLowLvl.vkCommand.getCommandBuffer(), 0, 1, buffers, offsets);
+//     vkCmdBindIndexBuffer(vulkanLowLvl.vkCommand.getCommandBuffer(), renderObj.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+//     PushConstants constants{camera.getMVP()};
+
+//     vkCmdPushConstants(
+//         vulkanLowLvl.vkCommand.getCommandBuffer(),
+//         masterPipeline.getGraphicsPipelineLayout(),
+//         VK_SHADER_STAGE_VERTEX_BIT,
+//         0,
+//         sizeof(PushConstants),
+//         &constants.mvp);
+
+//     vkCmdDrawIndexed(vulkanLowLvl.vkCommand.getCommandBuffer(), static_cast<uint32_t>(renderObj.indexCount), 1, 0, 0, 0);
+// }
 
 void sas::VulkanRenderer::imageLayoutTransitionPresent(VkImageMemoryBarrier2 &barrierToRender) const noexcept
 {

@@ -1,10 +1,11 @@
 #include "vkDevice.hpp"
 #include "vkPhysicalDevices.hpp"
+#include "volk.h"
 
 #include <iostream>
 #include <vector>
 
-sas::VulkanDevice::VulkanDevice(const VulkanPhysicalDevice& physicalDevice)
+sas::VulkanDevice::VulkanDevice(const VulkanPhysicalDevice &physicalDevice)
 {
     uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
@@ -43,19 +44,23 @@ sas::VulkanDevice::VulkanDevice(const VulkanPhysicalDevice& physicalDevice)
     deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
     deviceFeatures2.pNext = &features13;
 
-    std::vector<const char*> deviceExtensions = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME
-    };
+    std::vector<const char *> deviceExtensions = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        VK_EXT_SHADER_OBJECT_EXTENSION_NAME};
+
+    VkPhysicalDeviceShaderObjectFeaturesEXT shaderObjectFeatures{};
+    shaderObjectFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_FEATURES_EXT;
+    shaderObjectFeatures.shaderObject = VK_TRUE;
+    shaderObjectFeatures.pNext = &deviceFeatures2;
 
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     createInfo.pQueueCreateInfos = &queueCreateInfo;
     createInfo.queueCreateInfoCount = 1;
-    createInfo.pNext = &deviceFeatures2; 
+    createInfo.pNext = &shaderObjectFeatures;
 
     createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
     createInfo.ppEnabledExtensionNames = deviceExtensions.data();
-
 
     device = VK_NULL_HANDLE;
     if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS)
@@ -65,4 +70,7 @@ sas::VulkanDevice::VulkanDevice(const VulkanPhysicalDevice& physicalDevice)
 
     graphicsQueue = VK_NULL_HANDLE;
     vkGetDeviceQueue(device, graphicsQueueFamilyIndex, 0, &graphicsQueue);
+
+
+    volkLoadDevice(device);
 }

@@ -52,6 +52,9 @@ int main()
         uint32_t firstEntity = firstScene.sceneRegistry.createEntity();
 
         RenderObject renObj = engine.assetManager.loadMesh("objects/sphere.obj");
+
+        renObj.shader = &engine.vkRenderer.shaderPipeline;
+
         
         firstScene.sceneRegistry.addComponent(firstEntity, renObj);
 

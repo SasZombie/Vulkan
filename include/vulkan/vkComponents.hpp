@@ -54,6 +54,8 @@ namespace sas
         VkBuffer indexBuffer;
         VkDeviceMemory vertexBufferMemory;
         VkDeviceMemory indexBufferMemory;
+
+        VulkanShaderPipeline* shader;
         size_t indexCount;
     };
 

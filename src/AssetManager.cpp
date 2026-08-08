@@ -322,7 +322,7 @@ sas::RenderObject sas::AssetManager::createGpuMesh(const sas::Mesh &mesh) const 
     memcpy(data, mesh.indices.data(), (size_t)sizeof(mesh.indices[0]) * mesh.indices.size());
     vkUnmapMemory(vulkanCtx.vkDevice, indexBufferMemory);
 
-    return {vertexBuffer, indexBuffer, vertexBufferMemory, indexBufferMemory, mesh.indices.size()};
+    return {vertexBuffer, indexBuffer, vertexBufferMemory, indexBufferMemory, nullptr, mesh.indices.size()};
 }
 
 sas::RenderObject sas::AssetManager::loadMesh(const std::string &path) noexcept
