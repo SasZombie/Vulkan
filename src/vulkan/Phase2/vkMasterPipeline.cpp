@@ -3,18 +3,18 @@
 sas::VulkanMasterPipeline::VulkanMasterPipeline(VulkanDevice &vulkanDevice, const VulkanPipelineComponents &components) noexcept
     : device(vulkanDevice)
 {
-    // VkPushConstantRange pushConstantRange{};
-    // pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-    // pushConstantRange.offset = 0;
-    // pushConstantRange.size = sizeof(PushConstants);
+    VkPushConstantRange pushConstantRange{};
+    pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    pushConstantRange.offset = 0;
+    pushConstantRange.size = sizeof(PushConstants);
 
-    // VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+    VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 
-    // pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    // pipelineLayoutInfo.pushConstantRangeCount = 1;
-    // pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
+    pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipelineLayoutInfo.pushConstantRangeCount = 1;
+    pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
-    // vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout);
+    vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout);
 
     // VkPipelineRenderingCreateInfo renderingInfo{};
     // renderingInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
@@ -41,11 +41,11 @@ sas::VulkanMasterPipeline::VulkanMasterPipeline(VulkanDevice &vulkanDevice, cons
 
     // const auto &[vertShader, fragShader] = components.shaderPipeline->getShaderStages();
 
-    // // VkPipelineShaderStageCreateInfo shaderStages[] = {
-    // //     vertShader.shaderStageInfo,
-    // //     fragShader.shaderStageInfo};
+    // VkPipelineShaderStageCreateInfo shaderStages[] = {
+    //     vertShader.shaderStageInfo,
+    //     fragShader.shaderStageInfo};
 
-    // // pipelineInfo.pStages = shaderStages;
+    // pipelineInfo.pStages = shaderStages;
 
     // pipelineInfo.pVertexInputState = &components.inputPipeline->getVertexInput();
 

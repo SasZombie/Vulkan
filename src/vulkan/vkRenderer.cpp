@@ -114,13 +114,30 @@ void sas::VulkanRenderer::drawCallRecorder(const RenderObject &renderObj) const 
     const auto &rasterInfo = raster.getRasterizer();
     const auto &comandBuff = vulkanLowLvl.vkCommand.getCommandBuffer();
 
+    vkCmdSetRasterizationSamplesEXT(comandBuff, raster.getMultisampling().rasterizationSamples);
+
+    vkCmdSetAlphaToCoverageEnableEXT(comandBuff, VK_FALSE);
+
+    vkCmdSetPrimitiveRestartEnable(comandBuff, VK_FALSE);
+    vkCmdSetStencilTestEnable(comandBuff, VK_FALSE);
+    vkCmdSetDepthTestEnable(comandBuff, VK_TRUE);
+    vkCmdSetDepthWriteEnable(comandBuff, VK_TRUE);
+    vkCmdSetRasterizerDiscardEnable(comandBuff, VK_FALSE);
+    vkCmdSetDepthCompareOp(comandBuff, VK_COMPARE_OP_LESS_OR_EQUAL);
+
+    VkSampleMask sampleMask = 0xFFFFFFFF;
+    vkCmdSetSampleMaskEXT(comandBuff, raster.getMultisampling().rasterizationSamples, &sampleMask);
+
+
+    vkCmdSetDepthBiasEnable(comandBuff, VK_FALSE);
+
     vkCmdSetPrimitiveTopologyEXT(vulkanLowLvl.vkCommand.getCommandBuffer(), inputPipeline.getInputAssembly().topology);
     vkCmdSetPolygonModeEXT(vulkanLowLvl.vkCommand.getCommandBuffer(), rasterInfo.polygonMode);
     vkCmdSetCullModeEXT(vulkanLowLvl.vkCommand.getCommandBuffer(), rasterInfo.cullMode);
     vkCmdSetFrontFaceEXT(vulkanLowLvl.vkCommand.getCommandBuffer(), rasterInfo.frontFace);
 
-    vkCmdSetViewport(comandBuff, 0, 1, &viewPort.getViewport());
-    vkCmdSetScissor(comandBuff, 0, 1, &viewPort.getScissors());
+    vkCmdSetViewportWithCount(comandBuff, 1, &viewPort.getViewport());
+    vkCmdSetScissorWithCount(comandBuff, 1, &viewPort.getScissors());
 
     VkBool32 blendEnable = VK_FALSE;
     vkCmdSetColorBlendEnableEXT(comandBuff, 0, 1, &blendEnable);
@@ -132,6 +149,7 @@ void sas::VulkanRenderer::drawCallRecorder(const RenderObject &renderObj) const 
     bindingDesc.sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_BINDING_DESCRIPTION_2_EXT;
     bindingDesc.binding = 0;
     bindingDesc.stride = sizeof(Vertex);
+    bindingDesc.divisor = 1;
     bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
     VkVertexInputAttributeDescription2EXT attrDesc[2]{};
@@ -160,9 +178,14 @@ void sas::VulkanRenderer::drawCallRecorder(const RenderObject &renderObj) const 
 
     PushConstants constants{camera.getMVP()};
 
-    vkCmdPushConstants(comandBuff, VK_NULL_HANDLE, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstants), &constants);
-    vkCmdDrawIndexed(comandBuff, renderObj.indexCount, 1, 0, 0, 0);
+    vkCmdPushConstants(comandBuff,
+                       masterPipeline.getGraphicsPipelineLayout(),
+                       VK_SHADER_STAGE_VERTEX_BIT,
+                       0,
+                       sizeof(PushConstants),
+                       &constants);
 
+    vkCmdDrawIndexed(comandBuff, renderObj.indexCount, 1, 0, 0, 0);
 }
 
 // void sas::VulkanRenderer::drawCallRecorder(const RenderObject& renderObj) const noexcept

@@ -78,5 +78,8 @@ sas::VulkanShaderPipeline::VulkanShaderPipeline(VulkanDevice &vulkanDevice)
     fragCreateInfo.pCode = reinterpret_cast<const uint32_t *>(fragShaderCode.data());
     fragCreateInfo.pName = "main";
 
+    fragCreateInfo.pushConstantRangeCount = 1;
+    fragCreateInfo.pPushConstantRanges = &pushRange;
+
     vkCreateShadersEXT(device, 1, &fragCreateInfo, nullptr, &fragShader.shaderModule);
 }
