@@ -3,7 +3,7 @@ project(CrimsonBlossom)
 
 add_compile_definitions(VK_NO_PROTOTYPES)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(project_warnings_vulkan INTERFACE)
