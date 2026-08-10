@@ -388,7 +388,6 @@ void sas::AssetManager::addTexture(RenderObject &objWithMesh, const std::string 
         return;
     }
 
-    // 1. FIX: Cast to VkDeviceSize to prevent 32-bit integer overflow
     VkDeviceSize imageSize = static_cast<VkDeviceSize>(texWidth) * texHeight * 4;
 
     VkBuffer stagingBuffer;
@@ -435,9 +434,6 @@ void sas::AssetManager::addTexture(RenderObject &objWithMesh, const std::string 
     vkAllocateMemory(vulkanCtx.vkDevice, &allocInfo, nullptr, &textureImageMemory);
     vkBindImageMemory(vulkanCtx.vkDevice, textureImage, textureImageMemory, 0);
 
-    // ==========================================
-    // 3. FIX: Execute Commands, Barriers, and Submit
-    // ==========================================
     VkCommandBuffer cmd = vulkanCtx.vkCommand.getCommandBuffer();
 
     VkCommandBufferBeginInfo beginInfo{};
@@ -490,19 +486,12 @@ void sas::AssetManager::addTexture(RenderObject &objWithMesh, const std::string 
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &cmd;
 
-    // Note: Replace 'vulkanCtx.graphicsQueue' with however you access your VkQueue
     vkQueueSubmit(vulkanCtx.vkDevice.getQueue(), 1, &submitInfo, VK_NULL_HANDLE);
-    
-    // Wait for the GPU to finish the transfer before we destroy the staging buffer!
     vkQueueWaitIdle(vulkanCtx.vkDevice.getQueue()); 
 
-    // 4. FIX: Clean up staging buffer (Memory Leak fix)
     vkDestroyBuffer(vulkanCtx.vkDevice, stagingBuffer, nullptr);
     vkFreeMemory(vulkanCtx.vkDevice, stagingBufferMemory, nullptr);
-    // ==========================================
 
-
-    // 1. Image View
     VkImageViewCreateInfo viewInfo{};
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     viewInfo.image = textureImage;
@@ -515,7 +504,6 @@ void sas::AssetManager::addTexture(RenderObject &objWithMesh, const std::string 
     VkImageView textureImageView;
     vkCreateImageView(vulkanCtx.vkDevice, &viewInfo, nullptr, &textureImageView);
 
-    // 2. Sampler
     VkSamplerCreateInfo samplerInfo{};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     samplerInfo.magFilter = VK_FILTER_LINEAR;
@@ -527,14 +515,7 @@ void sas::AssetManager::addTexture(RenderObject &objWithMesh, const std::string 
     VkSampler textureSampler;
     vkCreateSampler(vulkanCtx.vkDevice, &samplerInfo, nullptr, &textureSampler);
 
-    // 3. Update Descriptor Set
     VkDescriptorSet dstSet = objWithMesh.shader->getShaderDescriptor().first;
-    
-    // 5. FIX: Safety check to prevent AddressSanitizer crash
-    if (dstSet == VK_NULL_HANDLE) {
-        std::cerr << "[Error] Target descriptor set is VK_NULL_HANDLE!\n";
-        return;
-    }
 
     VkDescriptorImageInfo imageDescriptorInfo{};
     imageDescriptorInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -551,136 +532,3 @@ void sas::AssetManager::addTexture(RenderObject &objWithMesh, const std::string 
 
     vkUpdateDescriptorSets(vulkanCtx.vkDevice, 1, &descriptorWrite, 0, nullptr);
 }
-
-// void sas::AssetManager::addTexture(RenderObject &objWithMesh, const std::string &path) noexcept
-// {
-//     if (objWithMesh.vertexBuffer == nullptr)
-//     {
-//         std::cerr << "[Warning!] Trying to add a texture to an object with no mesh\n";
-//         return;
-//     }
-
-//     int texWidth, texHeight, texChannels;
-
-//     stbi_uc *pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-
-//     if (!pixels)
-//     {
-//         std::cerr << "[[Warning]]! Cannot load texture " << path << '\n';
-//         pixels = stbi_load("resources/textures/textureNotFound.bmp", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-//     }
-
-//     if (!pixels)
-//     {
-//         std::cerr << "[[Warning]]! Cannot load  backup texture\n";
-//         return;
-//     }
-
-//     VkDeviceSize imageSize = texWidth * texHeight * 4;
-//     // STEP 1
-//     VkBuffer stagingBuffer;
-//     VkDeviceMemory stagingBufferMemory;
-//     createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-//                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-//                  stagingBuffer, stagingBufferMemory);
-
-//     void *data;
-//     vkMapMemory(vulkanCtx.vkDevice, stagingBufferMemory, 0, imageSize, 0, &data);
-//     memcpy(data, pixels, static_cast<size_t>(imageSize));
-//     vkUnmapMemory(vulkanCtx.vkDevice, stagingBufferMemory);
-//     stbi_image_free(pixels);
-
-//     // 2. Create GPU VkImage
-//     VkImage textureImage;
-//     VkDeviceMemory textureImageMemory;
-
-//     VkImageCreateInfo imageInfo{};
-//     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-//     imageInfo.imageType = VK_IMAGE_TYPE_2D;
-//     imageInfo.extent.width = static_cast<uint32_t>(texWidth);
-//     imageInfo.extent.height = static_cast<uint32_t>(texHeight);
-//     imageInfo.extent.depth = 1;
-//     imageInfo.mipLevels = 1;
-//     imageInfo.arrayLayers = 1;
-//     imageInfo.format = VK_FORMAT_R8G8B8A8_SRGB; // Match 4-channel STBI_rgb_alpha
-//     imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-//     imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-//     imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-//     imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-//     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-//     vkCreateImage(vulkanCtx.vkDevice, &imageInfo, nullptr, &textureImage);
-
-//     // Allocate VRAM for VkImage
-//     VkMemoryRequirements memReqs;
-//     vkGetImageMemoryRequirements(vulkanCtx.vkDevice, textureImage, &memReqs);
-
-//     VkMemoryAllocateInfo allocInfo{};
-//     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-//     allocInfo.allocationSize = memReqs.size;
-//     allocInfo.memoryTypeIndex = findMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-//     vkAllocateMemory(vulkanCtx.vkDevice, &allocInfo, nullptr, &textureImageMemory);
-//     vkBindImageMemory(vulkanCtx.vkDevice, textureImage, textureImageMemory, 0);
-
-//     //////////////
-
-//     // Execute inside a one-time command buffer:
-//     // 1. Transition UNDEFINED -> TRANSFER_DST_OPTIMAL (via vkCmdPipelineBarrier2)
-//     // 2. Copy buffer to image:
-//     VkBufferImageCopy region{};
-//     region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-//     region.imageSubresource.layerCount = 1;
-//     region.imageExtent = {static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 1};
-
-//     //!!!
-//     VkCommandBufferBeginInfo beginInfo{};
-//     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-//     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-//     vkBeginCommandBuffer(vulkanCtx.vkCommand.getCommandBuffer(), &beginInfo);
-//     vkCmdCopyBufferToImage(vulkanCtx.vkCommand.getCommandBuffer(), stagingBuffer, textureImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
-
-//     vkEndCommandBuffer(vulkanCtx.vkCommand.getCommandBuffer());
-//     // 1. Image View
-//     VkImageViewCreateInfo viewInfo{};
-//     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-//     viewInfo.image = textureImage;
-//     viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-//     viewInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
-//     viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-//     viewInfo.subresourceRange.levelCount = 1;
-//     viewInfo.subresourceRange.layerCount = 1;
-
-//     VkImageView textureImageView;
-//     vkCreateImageView(vulkanCtx.vkDevice, &viewInfo, nullptr, &textureImageView);
-
-//     VkSamplerCreateInfo samplerInfo{};
-//     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-//     samplerInfo.magFilter = VK_FILTER_LINEAR;
-//     samplerInfo.minFilter = VK_FILTER_LINEAR;
-//     samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-//     samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-//     samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-
-//     VkSampler textureSampler;
-//     vkCreateSampler(vulkanCtx.vkDevice, &samplerInfo, nullptr, &textureSampler);
-
-
-//     // 3. Update Descriptor Set with Image & Sampler handles
-//     VkDescriptorImageInfo imageDescriptorInfo{};
-//     imageDescriptorInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-//     imageDescriptorInfo.imageView = textureImageView;
-//     imageDescriptorInfo.sampler = textureSampler;
-
-//     VkWriteDescriptorSet descriptorWrite{};
-//     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-
-//     descriptorWrite.dstSet = objWithMesh.shader->getShaderDescriptor().first;
-//     descriptorWrite.dstBinding = 0;
-//     descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-//     descriptorWrite.descriptorCount = 1;
-//     descriptorWrite.pImageInfo = &imageDescriptorInfo;
-
-//     vkUpdateDescriptorSets(vulkanCtx.vkDevice, 1, &descriptorWrite, 0, nullptr);
-// }

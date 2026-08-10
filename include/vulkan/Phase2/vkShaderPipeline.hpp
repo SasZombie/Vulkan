@@ -19,6 +19,12 @@ namespace sas
         VkShaderCreateInfoEXT shaderStageInfo{};
     };
 
+    struct VulkanShaderDescriptor
+    {
+        VkSampler sampler;
+        VkDescriptorSetLayout descriptorSet;
+        VkDescriptorPool descriptorPool;
+    };
 
     template <typename ShaderStruct>
     class ManagedShader
