@@ -9,7 +9,7 @@ namespace sas
     class CrimsonBlossom
     {
     public:
-        VulkanLowLevel vulkanLowLvl;
+        VulkanDevices vulkanLowLvl;
         VulkanRenderer vkRenderer;
         AssetManager assetManager;
         std::vector<Scene> scenes;

@@ -29,7 +29,7 @@ namespace sas
         VulkanPixelStyling *pixelStyling;
     };
 
-    class VulkanLowLevel
+    class VulkanDevices
     {
     public:
         VulkanInstanceWrapper vk;
@@ -38,7 +38,7 @@ namespace sas
         VulkanBridge vkBridge;
         VulkanCommand vkCommand;
 
-        VulkanLowLevel(const Window &window) noexcept
+        VulkanDevices(const Window &window) noexcept
             : vk(),
               vkPhysical(vk),
               vkDevice(vkPhysical),
@@ -55,7 +55,7 @@ namespace sas
         VkDeviceMemory vertexBufferMemory;
         VkDeviceMemory indexBufferMemory;
 
-        VulkanShaderPipeline* shader;
+        VulkanDynamicShaderPipeline* shader;
         size_t indexCount;
     };
 

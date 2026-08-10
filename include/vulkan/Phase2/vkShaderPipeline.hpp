@@ -7,12 +7,12 @@
 
 namespace sas
 {
-
     struct VulkanShader
     {
-        VkShaderEXT shaderModule;
-        VkShaderCreateInfoEXT shaderStageInfo{};
+        VkShaderModule shaderModule;
+        VkPipelineShaderStageCreateInfo shaderStageInfo{};
     };
+
 
     class VulkanShaderPipeline
     {
@@ -20,6 +20,8 @@ namespace sas
         VulkanDevice &device;
         VulkanShader vertShader;
         VulkanShader fragShader;
+
+        void populateShader(VulkanShader &shader, std::vector<char> &data);
 
     public:
         VulkanShaderPipeline(VulkanDevice &vulkanDevice);
@@ -44,6 +46,72 @@ namespace sas
             {
                 if (vertShader.shaderModule)
                 {
+                    vkDestroyShaderModule(device, vertShader.shaderModule, nullptr);
+                }
+
+                if (fragShader.shaderModule)
+                {
+                    vkDestroyShaderModule(device, fragShader.shaderModule, nullptr);
+                }
+
+                vertShader.shaderModule = other.vertShader.shaderModule;
+                fragShader.shaderModule = other.fragShader.shaderModule;
+                other.vertShader.shaderModule = nullptr;
+                other.fragShader.shaderModule = nullptr;
+            }
+            return *this;
+        }
+
+        ~VulkanShaderPipeline()
+        {
+            if (vertShader.shaderModule)
+            {
+                vkDestroyShaderModule(device, vertShader.shaderModule, nullptr);
+            }
+
+            if (fragShader.shaderModule)
+            {
+                vkDestroyShaderModule(device, fragShader.shaderModule, nullptr);
+            }
+        }
+    };
+
+    struct VulkanDynamicShader
+    {
+        VkShaderEXT shaderModule;
+        VkShaderCreateInfoEXT shaderStageInfo{};
+    };
+
+    class VulkanDynamicShaderPipeline
+    {
+    private:
+        VulkanDevice &device;
+        VulkanDynamicShader vertShader;
+        VulkanDynamicShader fragShader;
+
+    public:
+        VulkanDynamicShaderPipeline(VulkanDevice &vulkanDevice);
+
+        [[nodiscard]] std::pair<VulkanDynamicShader, VulkanDynamicShader> getShaderStages() const noexcept
+        {
+            return std::make_pair(vertShader, fragShader);
+        }
+        VulkanDynamicShaderPipeline(const VulkanDynamicShaderPipeline &) = delete;
+        VulkanDynamicShaderPipeline &operator=(const VulkanDynamicShaderPipeline &) = delete;
+
+        VulkanDynamicShaderPipeline(VulkanDynamicShaderPipeline &&other) noexcept
+            : device(other.device), vertShader(other.vertShader), fragShader(other.fragShader)
+        {
+            other.fragShader.shaderModule = nullptr;
+            other.vertShader.shaderModule = nullptr;
+        }
+
+        VulkanDynamicShaderPipeline &operator=(VulkanDynamicShaderPipeline &&other) noexcept
+        {
+            if (this != &other)
+            {
+                if (vertShader.shaderModule)
+                {
                     vkDestroyShaderEXT(device, vertShader.shaderModule, nullptr);
                 }
 
@@ -60,7 +128,7 @@ namespace sas
             return *this;
         }
 
-        ~VulkanShaderPipeline()
+        ~VulkanDynamicShaderPipeline()
         {
             if (vertShader.shaderModule)
             {

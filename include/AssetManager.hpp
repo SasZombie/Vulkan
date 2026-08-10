@@ -11,7 +11,7 @@ namespace sas
     class AssetManager
     {
     private:
-        VulkanLowLevel &vulkanCtx;
+        VulkanDevices &vulkanCtx;
         std::unordered_map<std::string, RenderObject> meshCache;
 
         Mesh getRawMesh(std::string_view path) const noexcept;
@@ -20,7 +20,7 @@ namespace sas
         RenderObject createGpuMesh(const sas::Mesh &mesh) const noexcept;
 
     public:
-        AssetManager(VulkanLowLevel &ctx) noexcept
+        AssetManager(VulkanDevices &ctx) noexcept
             : vulkanCtx(ctx)
         {
         }

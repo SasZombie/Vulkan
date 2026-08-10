@@ -24,24 +24,36 @@ static std::vector<char> readFile(const std::string &filename)
     return buffer;
 }
 
-// void sas::VulkanShaderPipeline::populateShader(VulkanShader &shader, std::vector<char> &data)
-// {
-//     VkShaderModuleCreateInfo createInfo;
+void sas::VulkanShaderPipeline::populateShader(VulkanShader &shader, std::vector<char> &data)
+{
+    VkShaderModuleCreateInfo createInfo;
 
-//     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-//     createInfo.codeSize = data.size();
-//     createInfo.pCode = reinterpret_cast<const uint32_t *>(data.data());
+    createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    createInfo.codeSize = data.size();
+    createInfo.pCode = reinterpret_cast<const uint32_t *>(data.data());
 
-//     vkCreateShaderModule(device, &createInfo, nullptr, &shader.shaderModule);
+    vkCreateShaderModule(device, &createInfo, nullptr, &shader.shaderModule);
 
-//     // HERE CAN BE MORE STEPS IF NEEDED
+    // HERE CAN BE MORE STEPS IF NEEDED
 
-//     shader.shaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-//     shader.shaderStageInfo.module = shader.shaderModule;
-//     shader.shaderStageInfo.pName = "main";
-// }
+    shader.shaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    shader.shaderStageInfo.module = shader.shaderModule;
+    shader.shaderStageInfo.pName = "main";
+}
 
 sas::VulkanShaderPipeline::VulkanShaderPipeline(VulkanDevice &vulkanDevice)
+    : device(vulkanDevice)
+{
+    vertShader.shaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+    auto vertShaderCode = readFile("shaders/spv/vert.spv");
+    populateShader(vertShader, vertShaderCode);
+
+    fragShader.shaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    auto fragShaderCode = readFile("shaders/spv/frag.spv");
+    populateShader(fragShader, fragShaderCode);
+}
+
+sas::VulkanDynamicShaderPipeline::VulkanDynamicShaderPipeline(VulkanDevice &vulkanDevice)
     : device(vulkanDevice)
 {
 

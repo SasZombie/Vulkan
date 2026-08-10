@@ -24,7 +24,7 @@ namespace sas
     class VulkanRenderer
     {
     public:
-        VulkanRenderer(Window &window, Camera& camera, VulkanLowLevel& vulkanLowLvl);
+        VulkanRenderer(Window &window, Camera& camera, VulkanDevices& vulkanLowLvl);
 
         VulkanRenderer(VulkanRenderer &&) noexcept = default;
         VulkanRenderer &operator=(VulkanRenderer &&) noexcept = default;
@@ -45,9 +45,10 @@ namespace sas
     public:
         Window &window;
         Camera &camera;
-        VulkanLowLevel& vulkanLowLvl;
+        VulkanDevices& vulkanLowLvl;
 
         VulkanInputPipeline inputPipeline;
+        VulkanDynamicShaderPipeline dynamicShaderPipeline;
         VulkanShaderPipeline shaderPipeline;
         VulkanViewport viewPort;
         VulkanPixelStyling pixelStyle;
@@ -64,6 +65,7 @@ namespace sas
 
         void dynamicRendering(uint32_t imageIndex) const noexcept;
 
+        void drawCallRecorderDynamic(const RenderObject& renderObj) const noexcept;
         void drawCallRecorder(const RenderObject& renderObj) const noexcept;
 
         void imageLayoutTransitionPresent(VkImageMemoryBarrier2 &barrierToRender) const noexcept;

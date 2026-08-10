@@ -53,7 +53,7 @@ int main()
 
         RenderObject renObj = engine.assetManager.loadMesh("objects/sphere.obj");
 
-        renObj.shader = &engine.vkRenderer.shaderPipeline;
+        renObj.shader = &engine.vkRenderer.dynamicShaderPipeline;
 
         
         firstScene.sceneRegistry.addComponent(firstEntity, renObj);

@@ -14,6 +14,4 @@ void sas::CrimsonBlossom::update() noexcept
     
     vkRenderer.drawFrame(allMeshComp->getData());
     
-    
-
 }
