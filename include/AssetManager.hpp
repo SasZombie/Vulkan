@@ -25,6 +25,7 @@ namespace sas
         {
         }
         RenderObject loadMesh(const std::string &path) noexcept;
+        void addTexture(RenderObject& objWithMesh, const std::string &path) noexcept;
 
         ~AssetManager() noexcept
         {

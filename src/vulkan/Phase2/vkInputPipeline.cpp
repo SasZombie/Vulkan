@@ -15,7 +15,7 @@ sas::VulkanInputPipeline::VulkanInputPipeline() noexcept
     bindingDescription.stride = sizeof(Vertex); // Step size between vertices
     bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-    VkVertexInputAttributeDescription attributeDescriptions[3];
+    std::array<VkVertexInputAttributeDescription, 4> attributeDescriptions;
 
     attributeDescriptions[0].binding = 0;
     attributeDescriptions[0].location = 0;
@@ -24,26 +24,22 @@ sas::VulkanInputPipeline::VulkanInputPipeline() noexcept
 
     attributeDescriptions[1].binding = 0;
     attributeDescriptions[1].location = 1;
-    attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attributeDescriptions[1].offset = offsetof(Vertex, color);
+    attributeDescriptions[1].format = VK_FORMAT_R32G32_SFLOAT;
+    attributeDescriptions[1].offset = offsetof(Vertex, normals);
 
     attributeDescriptions[2].binding = 0;
     attributeDescriptions[2].location = 2;
     attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
     attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
 
+    attributeDescriptions[3].binding = 0;
+    attributeDescriptions[3].location = 3;
+    attributeDescriptions[3].format = VK_FORMAT_R32G32B32_SFLOAT;
+    attributeDescriptions[3].offset = offsetof(Vertex, color);
 
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     vertexInputInfo.vertexBindingDescriptionCount = 1;
     vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
-    vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(3);
-    vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions;
-    //////////////////////////////
-    // Trick works only for the first traingle
-    //  Minimal setup: no vertex buffers passed from CPU
-    // vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    // vertexInputInfo.vertexBindingDescriptionCount = 0;
-    // vertexInputInfo.pVertexBindingDescriptions = nullptr;
-    // vertexInputInfo.vertexAttributeDescriptionCount = 0;
-    // vertexInputInfo.pVertexAttributeDescriptions = nullptr;
+    vertexInputInfo.vertexAttributeDescriptionCount = attributeDescriptions.size();
+    vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 }

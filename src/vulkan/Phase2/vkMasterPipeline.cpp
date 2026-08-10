@@ -14,6 +14,12 @@ sas::VulkanMasterPipeline::VulkanMasterPipeline(VulkanDevice &vulkanDevice, cons
     pipelineLayoutInfo.pushConstantRangeCount = 1;
     pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
+    pipelineLayoutInfo.setLayoutCount = 1;
+
+    const auto &[_, layout] = components.shaderPipeline->getShaderDescriptor();
+
+    pipelineLayoutInfo.pSetLayouts = &layout;
+
     vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout);
 
     VkPipelineRenderingCreateInfo renderingInfo{};

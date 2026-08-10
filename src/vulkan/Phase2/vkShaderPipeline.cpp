@@ -1,6 +1,6 @@
 #include "vkShaderPipeline.hpp"
-
 #include "vkComponents.hpp"
+
 #include <vector>
 #include <fstream>
 
@@ -51,11 +51,56 @@ sas::VulkanShaderPipeline::VulkanShaderPipeline(VulkanDevice &vulkanDevice)
     fragShader.shaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
     auto fragShaderCode = readFile("shaders/spv/frag.spv");
     populateShader(fragShader, fragShaderCode);
+
+    VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+    samplerLayoutBinding.binding = 0;
+    samplerLayoutBinding.descriptorCount = 1;
+    samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+    VkDescriptorSetLayoutCreateInfo layoutInfo{};
+    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutInfo.bindingCount = 1;
+    layoutInfo.pBindings = &samplerLayoutBinding;
+
+    vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout);
+
+    // 2. Descriptor Pool & Allocate Set
+    VkDescriptorPoolSize poolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1};
+    VkDescriptorPoolCreateInfo poolInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO, nullptr, 0, 1, 1, &poolSize};
+    VkDescriptorPool descriptorPool;
+    vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool);
+
+    VkDescriptorSetAllocateInfo allocSetInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO, nullptr, descriptorPool, 1, &descriptorSetLayout};
+    vkAllocateDescriptorSets(device, &allocSetInfo, &descriptorSet);
 }
 
 sas::VulkanDynamicShaderPipeline::VulkanDynamicShaderPipeline(VulkanDevice &vulkanDevice)
     : device(vulkanDevice)
 {
+
+    VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+    samplerLayoutBinding.binding = 0;
+    samplerLayoutBinding.descriptorCount = 1;
+    samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+    VkDescriptorSetLayoutCreateInfo layoutInfo{};
+    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutInfo.bindingCount = 1;
+    layoutInfo.pBindings = &samplerLayoutBinding;
+
+    vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout);
+
+    // 2. Descriptor Pool & Allocate Set
+    VkDescriptorPoolSize poolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1};
+    VkDescriptorPoolCreateInfo poolInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO, nullptr, 0, 1, 1, &poolSize};
+    VkDescriptorPool descriptorPool;
+    vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool);
+
+    VkDescriptorSetAllocateInfo allocSetInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO, nullptr, descriptorPool, 1, &descriptorSetLayout};
+    vkAllocateDescriptorSets(device, &allocSetInfo, &descriptorSet);
+
 
     VkPushConstantRange pushRange{};
     pushRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
@@ -76,7 +121,11 @@ sas::VulkanDynamicShaderPipeline::VulkanDynamicShaderPipeline(VulkanDevice &vulk
     vertCreateInfo.pushConstantRangeCount = 1;
     vertCreateInfo.pPushConstantRanges = &pushRange;
 
+    vertCreateInfo.setLayoutCount = 1;
+    vertCreateInfo.pSetLayouts = &descriptorSetLayout;
+
     vkCreateShadersEXT(device, 1, &vertCreateInfo, nullptr, &vertShader.shaderModule);
+
 
     // FRAGMENT SHADER
     auto fragShaderCode = readFile("shaders/spv/frag.spv");
@@ -92,6 +141,9 @@ sas::VulkanDynamicShaderPipeline::VulkanDynamicShaderPipeline(VulkanDevice &vulk
 
     fragCreateInfo.pushConstantRangeCount = 1;
     fragCreateInfo.pPushConstantRanges = &pushRange;
+
+    fragCreateInfo.setLayoutCount = 1;
+    fragCreateInfo.pSetLayouts = &descriptorSetLayout;
 
     vkCreateShadersEXT(device, 1, &fragCreateInfo, nullptr, &fragShader.shaderModule);
 }

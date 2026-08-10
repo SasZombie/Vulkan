@@ -56,6 +56,7 @@ namespace sas
         VkDeviceMemory indexBufferMemory;
 
         VulkanDynamicShaderPipeline* shader;
+
         size_t indexCount;
     };
 

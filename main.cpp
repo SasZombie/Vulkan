@@ -12,8 +12,8 @@
 #include "vkViewport.hpp"
 #include "vkPixelStyling.hpp"
 #include "vkRastarization.hpp"
-// Final Pipe
 
+// Final Pipe
 #include "vkMasterPipeline.hpp"
 
 #include "Mesh.hpp"
@@ -41,6 +41,7 @@ int main()
         throw std::runtime_error("Vulkan is NOT supported on this system!");
     }
 
+    //Block just for destructor, to exit gracefully. Not that it would matter
     {
         Window window(800, 600, "Meow");
         Camera camera{math::Vec3{0, 0, 3.f}};
@@ -51,10 +52,11 @@ int main()
 
         uint32_t firstEntity = firstScene.sceneRegistry.createEntity();
 
-        RenderObject renObj = engine.assetManager.loadMesh("objects/sphere.obj");
+        RenderObject renObj = engine.assetManager.loadMesh("resources/models/sphere.obj");
 
         renObj.shader = &engine.vkRenderer.dynamicShaderPipeline;
-
+        
+        engine.assetManager.addTexture(renObj, "resources/textures/goldTexture.bmp");
         
         firstScene.sceneRegistry.addComponent(firstEntity, renObj);
 

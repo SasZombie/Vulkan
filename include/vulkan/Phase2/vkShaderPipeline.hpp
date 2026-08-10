@@ -13,13 +13,16 @@ namespace sas
         VkPipelineShaderStageCreateInfo shaderStageInfo{};
     };
 
-
     class VulkanShaderPipeline
     {
     private:
         VulkanDevice &device;
         VulkanShader vertShader;
         VulkanShader fragShader;
+
+
+        VkDescriptorSet descriptorSet;
+        VkDescriptorSetLayout descriptorSetLayout;
 
         void populateShader(VulkanShader &shader, std::vector<char> &data);
 
@@ -29,6 +32,11 @@ namespace sas
         [[nodiscard]] std::pair<VulkanShader, VulkanShader> getShaderStages() const noexcept
         {
             return std::make_pair(vertShader, fragShader);
+        }
+
+        [[nodiscard]] std::pair<VkDescriptorSet, VkDescriptorSetLayout> getShaderDescriptor() const noexcept
+        {
+            return std::make_pair(descriptorSet, descriptorSetLayout);
         }
         VulkanShaderPipeline(const VulkanShaderPipeline &) = delete;
         VulkanShaderPipeline &operator=(const VulkanShaderPipeline &) = delete;
@@ -89,9 +97,16 @@ namespace sas
         VulkanDynamicShader vertShader;
         VulkanDynamicShader fragShader;
 
+        VkDescriptorSet descriptorSet;
+        VkDescriptorSetLayout descriptorSetLayout;
+
     public:
         VulkanDynamicShaderPipeline(VulkanDevice &vulkanDevice);
 
+        [[nodiscard]] std::pair<VkDescriptorSet, VkDescriptorSetLayout> getShaderDescriptor() const noexcept
+        {
+            return std::make_pair(descriptorSet, descriptorSetLayout);
+        }
         [[nodiscard]] std::pair<VulkanDynamicShader, VulkanDynamicShader> getShaderStages() const noexcept
         {
             return std::make_pair(vertShader, fragShader);

@@ -130,7 +130,6 @@ void sas::VulkanRenderer::drawCallRecorderDynamic(const RenderObject &renderObj)
     VkSampleMask sampleMask = 0xFFFFFFFF;
     vkCmdSetSampleMaskEXT(comandBuff, raster.getMultisampling().rasterizationSamples, &sampleMask);
 
-
     vkCmdSetDepthBiasEnable(comandBuff, VK_FALSE);
 
     vkCmdSetPrimitiveTopologyEXT(vulkanLowLvl.vkCommand.getCommandBuffer(), inputPipeline.getInputAssembly().topology);
@@ -154,21 +153,32 @@ void sas::VulkanRenderer::drawCallRecorderDynamic(const RenderObject &renderObj)
     bindingDesc.divisor = 1;
     bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-    VkVertexInputAttributeDescription2EXT attrDesc[2]{};
+    VkVertexInputAttributeDescription2EXT attrDesc[4]{};
     attrDesc[0].sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT;
     attrDesc[0].location = 0; // inPosition
     attrDesc[0].format = VK_FORMAT_R32G32B32_SFLOAT;
     attrDesc[0].offset = offsetof(Vertex, pos);
 
     attrDesc[1].sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT;
-    attrDesc[1].location = 1; // inColor
+    attrDesc[1].location = 1; // inNormal
     attrDesc[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attrDesc[1].offset = offsetof(Vertex, color);
+    attrDesc[1].offset = offsetof(Vertex, normals);
 
-    vkCmdSetVertexInputEXT(comandBuff, 1, &bindingDesc, 2, attrDesc);
+    attrDesc[2].sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT;
+    attrDesc[2].location = 2; // inTextCoords
+    attrDesc[2].format = VK_FORMAT_R32G32B32_SFLOAT;
+    attrDesc[2].offset = offsetof(Vertex, texCoord);
+
+    attrDesc[3].sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT;
+    attrDesc[3].location = 3; // inColor
+    attrDesc[3].format = VK_FORMAT_R32G32B32_SFLOAT;
+    attrDesc[3].offset = offsetof(Vertex, color);
+
+    vkCmdSetVertexInputEXT(comandBuff, 1, &bindingDesc, 4, attrDesc);
 
     VkShaderStageFlagBits stages[] = {VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT};
     const auto &[vert, frag] = renderObj.shader->getShaderStages();
+    const auto &[descriptor, descriptorLayout] = renderObj.shader->getShaderDescriptor();
 
     VkShaderEXT shaders[] = {vert.shaderModule, frag.shaderModule};
 
@@ -178,6 +188,14 @@ void sas::VulkanRenderer::drawCallRecorderDynamic(const RenderObject &renderObj)
     vkCmdBindVertexBuffers(comandBuff, 0, 1, &renderObj.vertexBuffer, offsets);
     vkCmdBindIndexBuffer(comandBuff, renderObj.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
+    vkCmdBindDescriptorSets(
+        comandBuff,
+        VK_PIPELINE_BIND_POINT_GRAPHICS,
+        masterPipeline.getGraphicsPipelineLayout(),
+        0,
+        1,
+        &descriptor,
+        0, nullptr);
     PushConstants constants{camera.getMVP()};
 
     vkCmdPushConstants(comandBuff,
@@ -190,12 +208,29 @@ void sas::VulkanRenderer::drawCallRecorderDynamic(const RenderObject &renderObj)
     vkCmdDrawIndexed(comandBuff, renderObj.indexCount, 1, 0, 0, 0);
 }
 
-void sas::VulkanRenderer::drawCallRecorder(const RenderObject& renderObj) const noexcept
+void sas::VulkanRenderer::drawCallRecorder(const RenderObject &renderObj) const noexcept
 {
-    vkCmdBindPipeline(vulkanLowLvl.vkCommand.getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, masterPipeline.getGraphicsPipeline());
+    const auto& comBuff = vulkanLowLvl.vkCommand.getCommandBuffer();
 
-    vkCmdSetViewport(vulkanLowLvl.vkCommand.getCommandBuffer(), 0, 1, &viewPort.getViewport());
-    vkCmdSetScissor(vulkanLowLvl.vkCommand.getCommandBuffer(), 0, 1, &viewPort.getScissors());
+    vkCmdBindPipeline(comBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, masterPipeline.getGraphicsPipeline());
+
+    vkCmdSetViewport(comBuff, 0, 1, &viewPort.getViewport());
+    vkCmdSetScissor(comBuff, 0, 1, &viewPort.getScissors());
+
+    VkDescriptorSet descriptorSet = renderObj.shader->getShaderDescriptor().first;
+
+    if (descriptorSet != VK_NULL_HANDLE)
+    {
+        vkCmdBindDescriptorSets(
+            comBuff,
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            masterPipeline.getGraphicsPipelineLayout(), 
+            0,              
+            1,              
+            &descriptorSet, 
+            0, nullptr      
+        );
+    }
 
     VkBuffer buffers[] = {renderObj.vertexBuffer};
 
