@@ -17,6 +17,7 @@ namespace sas
         VulkanSampler sampler;
         std::unordered_map<std::string, RenderMesh> meshCache;
         std::unordered_map<std::string, RenderTexture> textureCache;
+        std::unordered_map<std::string, VulkanDynamicShader> shaderCache;
 
         Mesh getRawMesh(std::string_view path) const noexcept;
         uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;

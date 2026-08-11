@@ -49,8 +49,7 @@ namespace sas
         VulkanSharedObjects& sharedObjects;
 
         VulkanInputPipeline inputPipeline;
-        VulkanDynamicShaderPipeline dynamicShaderPipeline;
-        VulkanShaderPipeline shaderPipeline;
+        VulkanDynamicShader dynamicShaderPipeline;
         VulkanViewport viewPort;
         VulkanPixelStyling pixelStyle;
         VulkanRastarization raster;
@@ -67,7 +66,6 @@ namespace sas
         void dynamicRendering(uint32_t imageIndex) const noexcept;
 
         void drawCallRecorderDynamic(const RenderObject& renderObj) const noexcept;
-        void drawCallRecorder(const RenderObject& renderObj) const noexcept;
 
         void imageLayoutTransitionPresent(VkImageMemoryBarrier2 &barrierToRender) const noexcept;
 

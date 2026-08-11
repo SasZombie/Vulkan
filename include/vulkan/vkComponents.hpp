@@ -33,7 +33,7 @@ namespace sas
     struct VulkanPipelineComponents
     {
         VulkanBridge *bridge;
-        VulkanShaderPipeline *shaderPipeline;
+        VulkanDynamicShader *shaderPipeline;
         VulkanInputPipeline *inputPipeline;
         VulkanViewport *viewport;
         VulkanRastarization *rastar;
@@ -79,7 +79,7 @@ namespace sas
     struct RenderObject
     {
         RenderMesh* mesh;
-        VulkanDynamicShaderPipeline *shader;
+        VulkanDynamicShader *shader;
 
         VkDescriptorSet descriptorSet;
 

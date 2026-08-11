@@ -6,9 +6,8 @@ sas::VulkanRenderer::VulkanRenderer(Window &nwindow, Camera &ncamera, VulkanDevi
       vulkanLowLvl(nvulkanLowLvl),
       sharedObjects(sharedObj),
       dynamicShaderPipeline(vulkanLowLvl.vkDevice, sharedObjects.shaderDescriptor),
-      shaderPipeline(vulkanLowLvl.vkDevice, sharedObjects.shaderDescriptor),
       viewPort(window),
-      components{&vulkanLowLvl.vkBridge, &shaderPipeline, &inputPipeline, &viewPort, &raster, &pixelStyle, &sharedObjects},
+      components{&vulkanLowLvl.vkBridge, &dynamicShaderPipeline, &inputPipeline, &viewPort, &raster, &pixelStyle, &sharedObjects},
       masterPipeline(vulkanLowLvl.vkDevice, components)
 {
 }
@@ -178,10 +177,10 @@ void sas::VulkanRenderer::drawCallRecorderDynamic(const RenderObject &renderObj)
     vkCmdSetVertexInputEXT(comandBuff, 1, &bindingDesc, 4, attrDesc);
 
     VkShaderStageFlagBits stages[] = {VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT};
-    const auto &[vert, frag] = renderObj.shader->getShaderStages();
+    const auto &[vert, frag] = renderObj.shader->getShaderModule();
     const auto &descriptor = renderObj.descriptorSet;
 
-    VkShaderEXT shaders[] = {vert.getShaderModule(), frag.getShaderModule()};
+    VkShaderEXT shaders[] = {vert, frag};
 
     vkCmdBindShadersEXT(comandBuff, 2, stages, shaders);
 
@@ -207,49 +206,6 @@ void sas::VulkanRenderer::drawCallRecorderDynamic(const RenderObject &renderObj)
                        &constants);
 
     vkCmdDrawIndexed(comandBuff, renderObj.mesh->indexCount, 1, 0, 0, 0);
-}
-
-void sas::VulkanRenderer::drawCallRecorder(const RenderObject &renderObj) const noexcept
-{
-    const auto& comBuff = vulkanLowLvl.vkCommand.getCommandBuffer();
-
-    vkCmdBindPipeline(comBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, masterPipeline.getGraphicsPipeline());
-
-    vkCmdSetViewport(comBuff, 0, 1, &viewPort.getViewport());
-    vkCmdSetScissor(comBuff, 0, 1, &viewPort.getScissors());
-
-    VkDescriptorSet descriptorSet = renderObj.descriptorSet;
-
-    if (descriptorSet != VK_NULL_HANDLE)
-    {
-        vkCmdBindDescriptorSets(
-            comBuff,
-            VK_PIPELINE_BIND_POINT_GRAPHICS,
-            masterPipeline.getGraphicsPipelineLayout(), 
-            0,              
-            1,              
-            &descriptorSet, 
-            0, nullptr      
-        );
-    }
-
-    VkBuffer buffers[] = {renderObj.mesh->vertexBuffer};
-
-    VkDeviceSize offsets[] = {0};
-    vkCmdBindVertexBuffers(vulkanLowLvl.vkCommand.getCommandBuffer(), 0, 1, buffers, offsets);
-    vkCmdBindIndexBuffer(vulkanLowLvl.vkCommand.getCommandBuffer(), renderObj.mesh->indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-
-    PushConstants constants{camera.getMVP()};
-
-    vkCmdPushConstants(
-        vulkanLowLvl.vkCommand.getCommandBuffer(),
-        masterPipeline.getGraphicsPipelineLayout(),
-        VK_SHADER_STAGE_VERTEX_BIT,
-        0,
-        sizeof(PushConstants),
-        &constants.mvp);
-
-    vkCmdDrawIndexed(vulkanLowLvl.vkCommand.getCommandBuffer(), static_cast<uint32_t>(renderObj.mesh->indexCount), 1, 0, 0, 0);
 }
 
 void sas::VulkanRenderer::imageLayoutTransitionPresent(VkImageMemoryBarrier2 &barrierToRender) const noexcept
