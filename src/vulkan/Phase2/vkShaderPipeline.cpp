@@ -24,44 +24,43 @@ static std::vector<char> readFile(const std::string &filename)
     return buffer;
 }
 template <typename ShaderType>
-sas::GenericVulkanPipeline<ShaderType>::GenericVulkanPipeline(VulkanDevice &vulkanDevice) noexcept
-    : device(vulkanDevice)
+sas::GenericVulkanPipeline<ShaderType>::GenericVulkanPipeline(VulkanDevice &vulkanDevice, VulkanDescriptor& desc) noexcept
+    : device(vulkanDevice), descriptor(desc)
 {
-    createDescriptors();
     createShaders();
 }
 
-template <typename ShaderType>
-void sas::GenericVulkanPipeline<ShaderType>::createDescriptors() noexcept
-{
-    VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-    samplerLayoutBinding.binding = 0;
-    samplerLayoutBinding.descriptorCount = 1;
-    samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+// template <typename ShaderType>
+// void sas::GenericVulkanPipeline<ShaderType>::createDescriptors() noexcept
+// {
+//     VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+//     samplerLayoutBinding.binding = 0;
+//     samplerLayoutBinding.descriptorCount = 1;
+//     samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+//     samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-    VkDescriptorSetLayoutCreateInfo layoutInfo{};
-    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    layoutInfo.bindingCount = 1;
-    layoutInfo.pBindings = &samplerLayoutBinding;
+//     VkDescriptorSetLayoutCreateInfo layoutInfo{};
+//     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+//     layoutInfo.bindingCount = 1;
+//     layoutInfo.pBindings = &samplerLayoutBinding;
 
-    vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout);
+//     vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout);
 
-    VkDescriptorPoolSize poolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1};
-    VkDescriptorPoolCreateInfo poolInfo{
-        VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO, nullptr, 0, 1, 1, &poolSize};
-    VkDescriptorPool descriptorPool;
+//     VkDescriptorPoolSize poolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1};
+//     VkDescriptorPoolCreateInfo poolInfo{
+//         VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO, nullptr, 0, 1, 1, &poolSize};
+//     VkDescriptorPool descriptorPool;
 
-    vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool);
+//     vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool);
 
-    VkDescriptorSetAllocateInfo allocSetInfo{
-        VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-        nullptr,
-        descriptorPool,
-        1,
-        &descriptorSetLayout};
-    vkAllocateDescriptorSets(device, &allocSetInfo, &descriptorSet);
-}
+//     VkDescriptorSetAllocateInfo allocSetInfo{
+//         VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+//         nullptr,
+//         descriptorPool,
+//         1,
+//         &descriptorSetLayout};
+//     vkAllocateDescriptorSets(device, &allocSetInfo, &descriptorSet);
+// }
 
 template <typename ShaderType>
 void sas::GenericVulkanPipeline<ShaderType>::createShaders() noexcept
@@ -101,6 +100,8 @@ void sas::GenericVulkanPipeline<ShaderType>::createShaders() noexcept
         pushRange.offset = 0;
         pushRange.size = sizeof(PushConstants);
 
+        const auto& descLay = descriptor.getDescriptorLayout();
+
         // VERTEX
         VkShaderCreateInfoEXT vertCreateInfo{};
         vertCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_CREATE_INFO_EXT;
@@ -113,7 +114,7 @@ void sas::GenericVulkanPipeline<ShaderType>::createShaders() noexcept
         vertCreateInfo.pushConstantRangeCount = 1;
         vertCreateInfo.pPushConstantRanges = &pushRange;
         vertCreateInfo.setLayoutCount = 1;
-        vertCreateInfo.pSetLayouts = &descriptorSetLayout;
+        vertCreateInfo.pSetLayouts = &descLay;
 
         vkCreateShadersEXT(device, 1, &vertCreateInfo, nullptr, &vertShader.get().shaderModule);
 
@@ -129,7 +130,8 @@ void sas::GenericVulkanPipeline<ShaderType>::createShaders() noexcept
         fragCreateInfo.pushConstantRangeCount = 1;
         fragCreateInfo.pPushConstantRanges = &pushRange;
         fragCreateInfo.setLayoutCount = 1;
-        fragCreateInfo.pSetLayouts = &descriptorSetLayout;
+        
+        fragCreateInfo.pSetLayouts = &descLay;
 
         vkCreateShadersEXT(device, 1, &fragCreateInfo, nullptr, &fragShader.get().shaderModule);
     }

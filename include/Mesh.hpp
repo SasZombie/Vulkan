@@ -10,6 +10,7 @@
 namespace sas
 {
 
+    //Cpu stuff
     struct Vertex
     {
         math::Vec3 pos;
@@ -20,38 +21,14 @@ namespace sas
 
     struct Texture
     {
-        unsigned int id;
-        std::string type;
+        std::string path;
     };
 
-    struct MeshComponent
+    struct Mesh
     {
-        uint32_t id;
-        uint32_t generation;
-    };
-
-    class Mesh
-    {
-    public:
         std::vector<Vertex> vertices;
         std::vector<int> indices;
         std::vector<Texture> textures;
-
-
-        // std::shared_ptr<std::vector<Texture>> textures;
-
-    //     Mesh() noexcept = default;
-        // Mesh(std::vector<Vertex> vertices, std::vector<int> indices, std::shared_ptr<std::vector<Texture>> textures) noexcept;
-        // Mesh(std::vector<Vertex> vertices, std::vector<int> indices, const std::filesystem::path &pth) noexcept;
-    //     ~Mesh() noexcept = default;
-
-    //     void setTextures(std::shared_ptr<std::vector<Texture>> textures) noexcept;
-
-    //     friend std::ostream &operator<<(std::ostream &os, const Mesh &mesh);
-
-    // private:
-    //     void setup2() noexcept;
-    //     void setup() noexcept;
     };
 
 } // namespace sas

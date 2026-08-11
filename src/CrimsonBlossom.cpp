@@ -1,11 +1,11 @@
 #include "CrimsonBlossom.hpp"
 
 
-sas::RenderObject sas::CrimsonBlossom::createBuffer(const MeshComponent& component) const noexcept
-{
+// sas::RenderObject sas::CrimsonBlossom::createBuffer(const MeshComponent& component) const noexcept
+// {
 
 
-}
+// }
 
 void sas::CrimsonBlossom::update() noexcept
 {

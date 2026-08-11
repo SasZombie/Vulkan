@@ -15,6 +15,9 @@
 #include <cstring>
 #include <fstream>
 #include "Math.hpp"
+
+static const std::string defaulTexturePath = "resources/textures/textureNotFound.bmp";
+
 static float _stringToFloat(const std::string &source) noexcept
 {
     std::stringstream ss(source.c_str());
@@ -251,17 +254,6 @@ static void _faceTokenize(const std::string &source, std::vector<std::string> &t
 // TODO: Here some kind of dispatcher for diff formats :D and checkers for real files
 sas::Mesh sas::AssetManager::getRawMesh(std::string_view path) const noexcept
 {
-    // const std::vector<sas::Vertex> vertices = {
-    //     {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-    //     {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-    //     {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-    //     {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}};
-
-    // const std::vector<int> indices = {
-    //     0, 1, 2, // First triangle
-    //     2, 3, 0  // Second triangle
-    // };
-
     return loadObj(path);
 }
 
@@ -333,7 +325,13 @@ sas::RenderObject sas::AssetManager::createGpuMesh(const sas::Mesh &mesh) const 
     memcpy(data, mesh.indices.data(), (size_t)sizeof(mesh.indices[0]) * mesh.indices.size());
     vkUnmapMemory(vulkanCtx.vkDevice, indexBufferMemory);
 
-    return {vertexBuffer, indexBuffer, vertexBufferMemory, indexBufferMemory, nullptr, mesh.indices.size()};
+    return {vertexBuffer, indexBuffer, vertexBufferMemory, indexBufferMemory, nullptr, nullptr, mesh.indices.size()};
+}
+
+sas::AssetManager::AssetManager(VulkanDevices &ctx, VulkanSharedObjects& shardObj) noexcept
+    : vulkanCtx(ctx), sharedObjs(shardObj), sampler(vulkanCtx.vkDevice)
+{
+    loadTexture(defaulTexturePath);
 }
 
 sas::RenderObject sas::AssetManager::loadMesh(const std::string &path) noexcept
@@ -365,12 +363,12 @@ sas::RenderObject sas::AssetManager::loadMesh(const std::string &path) noexcept
     return gpuObject;
 }
 
-void sas::AssetManager::addTexture(RenderObject &objWithMesh, const std::string &path) noexcept
+sas::RenderTexture sas::AssetManager::loadTexture(const std::string &path) noexcept
 {
-    if (objWithMesh.vertexBuffer == nullptr)
+
+    if(textureCache.contains(path))
     {
-        std::cerr << "[Warning!] Trying to add a texture to an object with no mesh\n";
-        return;
+        return textureCache.at(path);
     }
 
     int texWidth, texHeight, texChannels;
@@ -384,8 +382,8 @@ void sas::AssetManager::addTexture(RenderObject &objWithMesh, const std::string 
 
     if (!pixels)
     {
-        std::cerr << "[[Warning]]! Cannot load backup texture\n";
-        return;
+        std::cerr << "[[Warning]]! Cannot load default texture. This might crash the program!\n";
+        return {};
     }
 
     VkDeviceSize imageSize = static_cast<VkDeviceSize>(texWidth) * texHeight * 4;
@@ -414,7 +412,7 @@ void sas::AssetManager::addTexture(RenderObject &objWithMesh, const std::string 
     imageInfo.extent.depth = 1;
     imageInfo.mipLevels = 1;
     imageInfo.arrayLayers = 1;
-    imageInfo.format = VK_FORMAT_R8G8B8A8_SRGB; 
+    imageInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
     imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
     imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
@@ -487,7 +485,7 @@ void sas::AssetManager::addTexture(RenderObject &objWithMesh, const std::string 
     submitInfo.pCommandBuffers = &cmd;
 
     vkQueueSubmit(vulkanCtx.vkDevice.getQueue(), 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(vulkanCtx.vkDevice.getQueue()); 
+    vkQueueWaitIdle(vulkanCtx.vkDevice.getQueue());
 
     vkDestroyBuffer(vulkanCtx.vkDevice, stagingBuffer, nullptr);
     vkFreeMemory(vulkanCtx.vkDevice, stagingBufferMemory, nullptr);
@@ -515,12 +513,27 @@ void sas::AssetManager::addTexture(RenderObject &objWithMesh, const std::string 
     VkSampler textureSampler;
     vkCreateSampler(vulkanCtx.vkDevice, &samplerInfo, nullptr, &textureSampler);
 
-    VkDescriptorSet dstSet = objWithMesh.shader->getShaderDescriptor().first;
+    RenderTexture t;
+    t.image = textureImage;
+    t.view = textureImageView;
+    t.memory = textureImageMemory;
+
+    textureCache[path] = t;
+
+    return t;
+}
+
+void sas::AssetManager::addTexture(RenderObject &objWithMesh, const std::string &path) noexcept
+{
+    const auto& texture = loadTexture(path);
+
+    objWithMesh.descriptorSet = sharedObjs.shaderDescriptor.allocateDescSet();
+    VkDescriptorSet dstSet = objWithMesh.descriptorSet;
 
     VkDescriptorImageInfo imageDescriptorInfo{};
     imageDescriptorInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    imageDescriptorInfo.imageView = textureImageView;
-    imageDescriptorInfo.sampler = textureSampler;
+    imageDescriptorInfo.imageView = texture.view;
+    imageDescriptorInfo.sampler = sampler.textureSampler;
 
     VkWriteDescriptorSet descriptorWrite{};
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

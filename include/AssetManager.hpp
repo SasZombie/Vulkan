@@ -5,6 +5,7 @@
 
 #include "Mesh.hpp"
 #include "vkComponents.hpp"
+#include "vkSampler.hpp"
 
 namespace sas
 {
@@ -12,7 +13,10 @@ namespace sas
     {
     private:
         VulkanDevices &vulkanCtx;
+        VulkanSharedObjects &sharedObjs;
+        VulkanSampler sampler;
         std::unordered_map<std::string, RenderObject> meshCache;
+        std::unordered_map<std::string, RenderTexture> textureCache;
 
         Mesh getRawMesh(std::string_view path) const noexcept;
         uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
@@ -20,11 +24,10 @@ namespace sas
         RenderObject createGpuMesh(const sas::Mesh &mesh) const noexcept;
 
     public:
-        AssetManager(VulkanDevices &ctx) noexcept
-            : vulkanCtx(ctx)
-        {
-        }
+        AssetManager(VulkanDevices &ctx, VulkanSharedObjects& obj) noexcept;
+
         RenderObject loadMesh(const std::string &path) noexcept;
+        RenderTexture loadTexture(const std::string& path) noexcept;
         void addTexture(RenderObject& objWithMesh, const std::string &path) noexcept;
 
         ~AssetManager() noexcept

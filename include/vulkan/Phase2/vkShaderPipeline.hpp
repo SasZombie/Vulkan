@@ -3,6 +3,8 @@
 #include "volk.h"
 
 #include "vkDevice.hpp"
+#include "vkDescriptor.hpp"
+
 #include <vector>
 
 namespace sas
@@ -95,7 +97,7 @@ namespace sas
     public:
         using Shader = ShaderType;
 
-        explicit GenericVulkanPipeline(VulkanDevice &vulkanDevice) noexcept;
+        GenericVulkanPipeline(VulkanDevice &vulkanDevice, VulkanDescriptor& desc) noexcept;
 
         GenericVulkanPipeline(const GenericVulkanPipeline &) = delete;
         GenericVulkanPipeline &operator=(const GenericVulkanPipeline &) = delete;
@@ -103,10 +105,10 @@ namespace sas
         GenericVulkanPipeline &operator=(GenericVulkanPipeline &&) noexcept = default;
         ~GenericVulkanPipeline() = default;
 
-        [[nodiscard]] std::pair<VkDescriptorSet, VkDescriptorSetLayout> getShaderDescriptor() const noexcept
-        {
-            return std::make_pair(descriptorSet, descriptorSetLayout);
-        }
+        // [[nodiscard]] std::pair<VkDescriptorSet, VkDescriptorSetLayout> getShaderDescriptor() const noexcept
+        // {
+        //     return std::make_pair(descriptorSet, descriptorSetLayout);
+        // }
 
         [[nodiscard]] std::pair<ShaderType, ShaderType> getShaderStages() const noexcept
         {
@@ -115,13 +117,14 @@ namespace sas
 
     private:
         VulkanDevice &device;
+        VulkanDescriptor& descriptor;
         ManagedShader<ShaderType> vertShader;
         ManagedShader<ShaderType> fragShader;
 
-        VkDescriptorSet descriptorSet{};
-        VkDescriptorSetLayout descriptorSetLayout{};
+        // VkDescriptorSet descriptorSet{};
+        // VkDescriptorSetLayout descriptorSetLayout{};
 
-        void createDescriptors() noexcept;
+        // void createDescriptors() noexcept;
         void createShaders() noexcept;
     };
 

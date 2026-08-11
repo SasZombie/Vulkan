@@ -10,14 +10,15 @@ namespace sas
     {
     public:
         VulkanDevices vulkanLowLvl;
+        VulkanSharedObjects sharedObjects;
         VulkanRenderer vkRenderer;
         AssetManager assetManager;
         std::vector<Scene> scenes;
 
-        RenderObject createBuffer(const MeshComponent& component) const noexcept;
+        // RenderObject createBuffer(const MeshComponent& component) const noexcept;
 
         CrimsonBlossom(Window &window, Camera& camera) noexcept
-            : vulkanLowLvl(window), vkRenderer(window, camera, vulkanLowLvl), assetManager(vulkanLowLvl)
+            : vulkanLowLvl(window), sharedObjects(vulkanLowLvl.vkDevice), vkRenderer(window, camera, vulkanLowLvl, sharedObjects), assetManager(vulkanLowLvl, sharedObjects)
         {}
 
         void addScene(Scene newScene) noexcept

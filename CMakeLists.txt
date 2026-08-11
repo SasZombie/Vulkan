@@ -36,12 +36,17 @@ target_link_libraries(volk PUBLIC Vulkan::Headers ${CMAKE_DL_LIBS})
 
 SET(GLOBAL_SOURCES
     src/Window.cpp
-    src/vulkan/vkRenderer.cpp
     src/Camera.cpp
     src/SceneNode.cpp
     src/CrimsonBlossom.cpp
     src/AssetManager.cpp
     src/Mesh.cpp
+)
+
+SET(VULKAN_SOURCES
+    vkDescriptor.cpp
+    vkSampler.cpp
+    vkRenderer.cpp
 )
 
 SET(PHASE_1_SOURCES
@@ -63,8 +68,9 @@ SET(PHASE_2_SOURCES
 
 list(TRANSFORM PHASE_1_SOURCES PREPEND "src/vulkan/Phase1/")
 list(TRANSFORM PHASE_2_SOURCES PREPEND "src/vulkan/Phase2/")
+list(TRANSFORM VULKAN_SOURCES PREPEND "src/vulkan/")
 
-add_executable(main main.cpp ${GLOBAL_SOURCES} ${PHASE_1_SOURCES} ${PHASE_2_SOURCES})
+add_executable(main main.cpp ${GLOBAL_SOURCES} ${PHASE_1_SOURCES} ${PHASE_2_SOURCES} ${VULKAN_SOURCES})
 add_subdirectory(deps/Engine)
 
 

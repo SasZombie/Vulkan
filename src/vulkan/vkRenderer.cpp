@@ -1,13 +1,14 @@
 #include "vkRenderer.hpp"
 #include "Mesh.hpp"
-sas::VulkanRenderer::VulkanRenderer(Window &nwindow, Camera &ncamera, VulkanDevices &nvulkanLowLvl)
+sas::VulkanRenderer::VulkanRenderer(Window &nwindow, Camera &ncamera, VulkanDevices &nvulkanLowLvl, VulkanSharedObjects& sharedObj)
     : window(nwindow),
       camera(ncamera),
       vulkanLowLvl(nvulkanLowLvl),
-      dynamicShaderPipeline(vulkanLowLvl.vkDevice),
-      shaderPipeline(vulkanLowLvl.vkDevice),
+      sharedObjects(sharedObj),
+      dynamicShaderPipeline(vulkanLowLvl.vkDevice, sharedObjects.shaderDescriptor),
+      shaderPipeline(vulkanLowLvl.vkDevice, sharedObjects.shaderDescriptor),
       viewPort(window),
-      components{&vulkanLowLvl.vkBridge, &shaderPipeline, &inputPipeline, &viewPort, &raster, &pixelStyle},
+      components{&vulkanLowLvl.vkBridge, &shaderPipeline, &inputPipeline, &viewPort, &raster, &pixelStyle, &sharedObjects},
       masterPipeline(vulkanLowLvl.vkDevice, components)
 {
 }
@@ -178,7 +179,7 @@ void sas::VulkanRenderer::drawCallRecorderDynamic(const RenderObject &renderObj)
 
     VkShaderStageFlagBits stages[] = {VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT};
     const auto &[vert, frag] = renderObj.shader->getShaderStages();
-    const auto &[descriptor, descriptorLayout] = renderObj.shader->getShaderDescriptor();
+    const auto &descriptor = renderObj.descriptorSet;
 
     VkShaderEXT shaders[] = {vert.shaderModule, frag.shaderModule};
 
@@ -217,7 +218,7 @@ void sas::VulkanRenderer::drawCallRecorder(const RenderObject &renderObj) const 
     vkCmdSetViewport(comBuff, 0, 1, &viewPort.getViewport());
     vkCmdSetScissor(comBuff, 0, 1, &viewPort.getScissors());
 
-    VkDescriptorSet descriptorSet = renderObj.shader->getShaderDescriptor().first;
+    VkDescriptorSet descriptorSet = renderObj.descriptorSet;
 
     if (descriptorSet != VK_NULL_HANDLE)
     {

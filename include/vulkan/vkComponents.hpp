@@ -8,6 +8,7 @@
 #include "vkPixelStyling.hpp"
 #include "vkPhysicalDevices.hpp"
 #include "vkCommand.hpp"
+#include "vkDescriptor.hpp"
 
 #include "Math.hpp"
 
@@ -19,6 +20,16 @@ namespace sas
         math::Mat4 mvp;
     };
 
+    struct VulkanSharedObjects
+    {
+        VulkanDescriptor shaderDescriptor;
+
+        VulkanSharedObjects(VulkanDevice &dev) noexcept
+            : shaderDescriptor(dev)
+        {
+        }
+    };
+
     struct VulkanPipelineComponents
     {
         VulkanBridge *bridge;
@@ -27,6 +38,7 @@ namespace sas
         VulkanViewport *viewport;
         VulkanRastarization *rastar;
         VulkanPixelStyling *pixelStyling;
+        VulkanSharedObjects *sharedObjects;
     };
 
     class VulkanDevices
@@ -48,6 +60,13 @@ namespace sas
         }
     };
 
+    struct RenderTexture
+    {
+        VkImage image;
+        VkDeviceMemory memory;
+        VkImageView view;
+    };
+
     struct RenderObject
     {
         VkBuffer vertexBuffer;
@@ -55,7 +74,9 @@ namespace sas
         VkDeviceMemory vertexBufferMemory;
         VkDeviceMemory indexBufferMemory;
 
-        VulkanDynamicShaderPipeline* shader;
+        VulkanDynamicShaderPipeline *shader;
+
+        VkDescriptorSet descriptorSet;
 
         size_t indexCount;
     };

@@ -24,7 +24,7 @@ namespace sas
     class VulkanRenderer
     {
     public:
-        VulkanRenderer(Window &window, Camera& camera, VulkanDevices& vulkanLowLvl);
+        VulkanRenderer(Window &window, Camera& camera, VulkanDevices& vulkanLowLvl, VulkanSharedObjects& sharedObjs);
 
         VulkanRenderer(VulkanRenderer &&) noexcept = default;
         VulkanRenderer &operator=(VulkanRenderer &&) noexcept = default;
@@ -46,6 +46,7 @@ namespace sas
         Window &window;
         Camera &camera;
         VulkanDevices& vulkanLowLvl;
+        VulkanSharedObjects& sharedObjects;
 
         VulkanInputPipeline inputPipeline;
         VulkanDynamicShaderPipeline dynamicShaderPipeline;
