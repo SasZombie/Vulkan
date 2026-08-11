@@ -48,8 +48,8 @@ sas::VulkanMasterPipeline::VulkanMasterPipeline(VulkanDevice &vulkanDevice, cons
     const auto &[vertShader, fragShader] = components.shaderPipeline->getShaderStages();
 
     VkPipelineShaderStageCreateInfo shaderStages[] = {
-        vertShader.shaderStageInfo,
-        fragShader.shaderStageInfo};
+        vertShader.getShaderInfo(),
+        fragShader.getShaderInfo()};
 
     pipelineInfo.pStages = shaderStages;
 

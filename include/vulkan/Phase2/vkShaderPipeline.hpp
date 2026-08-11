@@ -6,126 +6,94 @@
 #include "vkDescriptor.hpp"
 
 #include <vector>
+#include <span>
+
 #include <iostream>
 
 namespace sas
 {
-    struct VulkanShader
+    struct VulkanShaderConfig
     {
-        VkShaderModule shaderModule;
-        VkPipelineShaderStageCreateInfo shaderStageInfo{};
+        VkShaderStageFlagBits stage;
+        std::span<const uint32_t> spirvCode;
+
+        const char *entryPoint = "main";
+        const VkSpecializationInfo *specializationInfo = nullptr;
+
+        VkDescriptorSetLayout descriptor;
+        // Specifically needed for VulkanDynamicShader (Shader Objects)
+        // std::span<const VkDescriptorSetLayout> setLayouts = {};
+        // std::span<const VkPushConstantRange> pushConstants = {};
+
+        VkShaderStageFlagBits nextStage = static_cast<VkShaderStageFlagBits>(0);
     };
 
-    struct VulkanDynamicShader
+    class VulkanShader
     {
-        VkShaderEXT shaderModule;
-        VkShaderCreateInfoEXT shaderStageInfo{};
-    };
-
-    template <typename ShaderStruct>
-    class ManagedShader
-    {
-    public:
-        ManagedShader() noexcept = default;
-        ManagedShader(VkDevice ndevice, ShaderStruct nshader) noexcept
-            : device(ndevice), shader(nshader) {}
-
-        ~ManagedShader()
-        {
-            cleanup();
-        }
-
-        ManagedShader(const ManagedShader &) = delete;
-        ManagedShader &operator=(const ManagedShader &) = delete;
-
-        ManagedShader(ManagedShader &&other) noexcept
-            : device(other.device), shader(other.shader)
-        {
-            other.shader.shaderModule = VK_NULL_HANDLE;
-            other.device = VK_NULL_HANDLE;
-        }
-
-        ManagedShader &operator=(ManagedShader &&other) noexcept
-        {
-            if (this != &other)
-            {
-                cleanup();
-                device = other.device;
-                shader = other.shader;
-                other.shader.shaderModule = nullptr;
-                other.device = VK_NULL_HANDLE;
-            }
-            return *this;
-        }
-
-        [[nodiscard]] const ShaderStruct &get() const noexcept
-        {
-            return shader;
-        }
-        [[nodiscard]] ShaderStruct &get() noexcept
-        {
-            return shader;
-        }
-
-    private:
-        void cleanup() noexcept
-        {            
-            std::cout << "Shader cleanup clled \n";
-            
-            if (device != VK_NULL_HANDLE)
-            {
-                std::cout << "Shader cleanup clled and not with null device \n";
-
-                if constexpr (std::is_same_v<ShaderStruct, VulkanShader>)
-                {
-                    vkDestroyShaderModule(device, shader.shaderModule, nullptr);
-                }
-                else if constexpr (std::is_same_v<ShaderStruct, VulkanDynamicShader>)
-                {
-                    vkDestroyShaderEXT(device, shader.shaderModule, nullptr);
-                }
-                else
-                {
-                    std::cout << "Shader cleanup clled and not with unknwen shader \n";
-
-                }
-            }
-        }
-
-        VkDevice device;
-        ShaderStruct shader{};
-    };
-
-    template <typename ShaderType>
-    class GenericVulkanPipeline
-    {
-    public:
-        using Shader = ShaderType;
-
-        GenericVulkanPipeline(VulkanDevice &vulkanDevice, VulkanDescriptor& desc) noexcept;
-
-        GenericVulkanPipeline(const GenericVulkanPipeline &) = delete;
-        GenericVulkanPipeline &operator=(const GenericVulkanPipeline &) = delete;
-        GenericVulkanPipeline(GenericVulkanPipeline &&) noexcept = default;
-        GenericVulkanPipeline &operator=(GenericVulkanPipeline &&) noexcept = default;
-        ~GenericVulkanPipeline() = default;
-
-
-        [[nodiscard]] std::pair<ShaderType, ShaderType> getShaderStages() const noexcept
-        {
-            return std::make_pair(vertShader.get(), fragShader.get());
-        }
-
     private:
         VulkanDevice &device;
-        VulkanDescriptor& descriptor;
-        ManagedShader<ShaderType> vertShader;
-        ManagedShader<ShaderType> fragShader;
+        VkShaderModule shaderModule;
+        VkPipelineShaderStageCreateInfo shaderStageInfo{};
 
-        void createShaders() noexcept;
+    public:
+        VulkanShader(VulkanDevice &dev, const VulkanShaderConfig& config);
+
+        [[nodiscard]]VkShaderModule getShaderModule() const noexcept
+        {
+            return shaderModule;
+        }
+
+        [[nodiscard]]VkPipelineShaderStageCreateInfo getShaderInfo() const noexcept
+        {
+            return shaderStageInfo;
+        }
     };
 
-    using VulkanShaderPipeline = GenericVulkanPipeline<VulkanShader>;
-    using VulkanDynamicShaderPipeline = GenericVulkanPipeline<VulkanDynamicShader>;
+    class VulkanDynamicShader
+    {
+    private:
+        VulkanDevice &device;
+        VkShaderEXT shaderModule;
 
+    public:
+        VulkanDynamicShader(VulkanDevice &dev, const VulkanShaderConfig& config);
+
+
+        [[nodiscard]]VkShaderEXT getShaderModule() const noexcept
+        {
+            return shaderModule;
+        }
+    };
+
+    template <typename T>
+    concept ValidVulkanShader = std::same_as<T, VulkanShader> ||
+                                std::same_as<T, VulkanDynamicShader>;
+
+    template <ValidVulkanShader ShaderTemplate>
+    class VulkanPipeline
+    {
+    private:
+        VulkanDevice &device;
+        VulkanDescriptor &descriptor;
+
+        ShaderTemplate vertShader;
+        ShaderTemplate fragShader;
+
+    public:
+        VulkanPipeline(VulkanDevice &dev, VulkanDescriptor &desc, const std::vector<uint32_t>& vertCode, const std::vector<uint32_t>& fragCode) noexcept;
+
+        VulkanPipeline(const VulkanPipeline &) = delete;
+        VulkanPipeline &operator=(const VulkanPipeline &) = delete;
+        VulkanPipeline(VulkanPipeline &&) noexcept = default;
+        VulkanPipeline &operator=(VulkanPipeline &&) noexcept = default;
+        ~VulkanPipeline() = default;
+
+        [[nodiscard]] std::pair<ShaderTemplate, ShaderTemplate> getShaderStages() const noexcept
+        {
+            return std::make_pair(vertShader, fragShader);
+        }
+    };
+
+    using VulkanShaderPipeline = VulkanPipeline<VulkanShader>;
+    using VulkanDynamicShaderPipeline = VulkanPipeline<VulkanDynamicShader>;
 } // namespace sas

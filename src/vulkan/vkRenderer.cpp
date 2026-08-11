@@ -181,7 +181,7 @@ void sas::VulkanRenderer::drawCallRecorderDynamic(const RenderObject &renderObj)
     const auto &[vert, frag] = renderObj.shader->getShaderStages();
     const auto &descriptor = renderObj.descriptorSet;
 
-    VkShaderEXT shaders[] = {vert.shaderModule, frag.shaderModule};
+    VkShaderEXT shaders[] = {vert.getShaderModule(), frag.getShaderModule()};
 
     vkCmdBindShadersEXT(comandBuff, 2, stages, shaders);
 

@@ -4,121 +4,92 @@
 #include <vector>
 #include <fstream>
 
-static std::vector<char> readFile(const std::string &filename)
+static std::vector<uint32_t> readFile(const std::string& filename)
 {
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
-    if (!file.is_open())
-        throw std::runtime_error("Failed to open file!");
+    if (!file.is_open()) {
+        throw std::runtime_error("Failed to open file: " + filename);
+    }
 
-    size_t fileSize = static_cast<size_t>(file.tellg());
+    const size_t fileSize = static_cast<size_t>(file.tellg());
 
-    if (fileSize % 4 != 0)
-    {
+    if (fileSize % sizeof(uint32_t) != 0) {
         throw std::runtime_error("SPIR-V file size is not a multiple of 4: " + filename);
     }
 
-    std::vector<char> buffer(fileSize);
+    std::vector<uint32_t> buffer(fileSize / sizeof(uint32_t));
+
     file.seekg(0);
-    file.read(buffer.data(), fileSize);
+
+    file.read(reinterpret_cast<char*>(buffer.data()), fileSize);
     file.close();
+
     return buffer;
 }
-template <typename ShaderType>
-sas::GenericVulkanPipeline<ShaderType>::GenericVulkanPipeline(VulkanDevice &vulkanDevice, VulkanDescriptor &desc) noexcept
-    : device(vulkanDevice), descriptor(desc)
-{
-    std::cout << "Shader Constrsct clled \n";
 
-    createShaders();
+sas::VulkanShader::VulkanShader(VulkanDevice &dev, const VulkanShaderConfig &config)
+    : device(dev)
+{
+
+    VkShaderModuleCreateInfo createInfo;
+
+    createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    createInfo.codeSize = config.spirvCode.size_bytes();
+    createInfo.pCode = config.spirvCode.data();
+
+    vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule);
+
+    // HERE CAN BE MORE STEPS IF NEEDED
+
+    shaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    shaderStageInfo.module = shaderModule;
+    shaderStageInfo.pName = config.entryPoint;
+
+    shaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
 }
 
-template <typename ShaderType>
-void sas::GenericVulkanPipeline<ShaderType>::createShaders() noexcept
+sas::VulkanDynamicShader::VulkanDynamicShader(VulkanDevice &dev, const VulkanShaderConfig &config)
+    : device(dev)
 {
-    auto vertShaderCode = readFile("shaders/spv/vert.spv");
-    auto fragShaderCode = readFile("shaders/spv/frag.spv");
 
-    if constexpr (std::is_same_v<ShaderType, VulkanShader>)
-    {
-        VulkanShader vert{}, frag{};
+    VkPushConstantRange pushRange{};
+    pushRange.stageFlags = config.stage;
+    pushRange.offset = 0;
+    pushRange.size = sizeof(PushConstants);
 
-        auto populateShader = [&](VulkanShader &shader, std::vector<char> &data)
-        {
-            VkShaderModuleCreateInfo createInfo;
+    const auto &descLay = config.descriptor;
 
-            createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-            createInfo.codeSize = data.size();
-            createInfo.pCode = reinterpret_cast<const uint32_t *>(data.data());
+    shaderStageInfo.sType = VK_STRUCTURE_TYPE_SHADER_CREATE_INFO_EXT;
+    shaderStageInfo.stage = config.stage;
+    shaderStageInfo.nextStage = config.nextStage;
+    shaderStageInfo.codeType = VK_SHADER_CODE_TYPE_SPIRV_EXT;
+    shaderStageInfo.codeSize = config.spirvCode.size();
+    shaderStageInfo.pCode = config.spirvCode.data();
+    shaderStageInfo.pName = config.entryPoint;
+    shaderStageInfo.pushConstantRangeCount = 1;
+    shaderStageInfo.pPushConstantRanges = &pushRange;
+    shaderStageInfo.setLayoutCount = 1;
+    shaderStageInfo.pSetLayouts = &descLay;
 
-            vkCreateShaderModule(device, &createInfo, nullptr, &shader.shaderModule);
-
-            // HERE CAN BE MORE STEPS IF NEEDED
-
-            shader.shaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-            shader.shaderStageInfo.module = shader.shaderModule;
-            shader.shaderStageInfo.pName = "main";
-        };
-
-        vert.shaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-        populateShader(vert, vertShaderCode);
-
-        frag.shaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-        populateShader(frag, fragShaderCode);
-
-        vertShader = ManagedShader<VulkanShader>(device, vert);
-        fragShader = ManagedShader<VulkanShader>(device, frag);
-    }
-    else if constexpr (std::is_same_v<ShaderType, VulkanDynamicShader>)
-    {
-        VulkanDynamicShader vert{}, frag{};
-
-        VkPushConstantRange pushRange{};
-        pushRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-        pushRange.offset = 0;
-        pushRange.size = sizeof(PushConstants);
-
-        const auto &descLay = descriptor.getDescriptorLayout();
-
-        // VERTEX
-        VkShaderCreateInfoEXT vertCreateInfo{};
-        vertCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_CREATE_INFO_EXT;
-        vertCreateInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-        vertCreateInfo.nextStage = VK_SHADER_STAGE_FRAGMENT_BIT;
-        vertCreateInfo.codeType = VK_SHADER_CODE_TYPE_SPIRV_EXT;
-        vertCreateInfo.codeSize = vertShaderCode.size();
-        vertCreateInfo.pCode = reinterpret_cast<const uint32_t *>(vertShaderCode.data());
-        vertCreateInfo.pName = "main";
-        vertCreateInfo.pushConstantRangeCount = 1;
-        vertCreateInfo.pPushConstantRanges = &pushRange;
-        vertCreateInfo.setLayoutCount = 1;
-        vertCreateInfo.pSetLayouts = &descLay;
-
-        vkCreateShadersEXT(device, 1, &vertCreateInfo, nullptr, &vert.shaderModule);
-
-        // FRAGMENT
-        VkShaderCreateInfoEXT fragCreateInfo{};
-        fragCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_CREATE_INFO_EXT;
-        fragCreateInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-        fragCreateInfo.nextStage = 0;
-        fragCreateInfo.codeType = VK_SHADER_CODE_TYPE_SPIRV_EXT;
-        fragCreateInfo.codeSize = fragShaderCode.size();
-        fragCreateInfo.pCode = reinterpret_cast<const uint32_t *>(fragShaderCode.data());
-        fragCreateInfo.pName = "main";
-        fragCreateInfo.pushConstantRangeCount = 1;
-        fragCreateInfo.pPushConstantRanges = &pushRange;
-        fragCreateInfo.setLayoutCount = 1;
-
-        fragCreateInfo.pSetLayouts = &descLay;
-
-        vkCreateShadersEXT(device, 1, &fragCreateInfo, nullptr, &frag.shaderModule);
-
-        vertShader = ManagedShader<VulkanDynamicShader>(device, vert);
-        fragShader = ManagedShader<VulkanDynamicShader>(device, frag);
-    }
+    vkCreateShadersEXT(device, 1, &shaderStageInfo, nullptr, &shaderModule);
 }
 
-// template class sas::ManagedShader<sas::VulkanShader>;
-// template class sas::ManagedShader<sas::VulkanDynamicShader>;
+template <sas::ValidVulkanShader ShaderTemplate>
+sas::VulkanPipeline<ShaderTemplate>::VulkanPipeline(VulkanDevice &dev, VulkanDescriptor &desc, const std::vector<uint32_t>& vertCode, const std::vector<uint32_t>& fragCode) noexcept
+    : device(dev), descriptor(desc), 
 
-template class sas::GenericVulkanPipeline<sas::VulkanShader>;
-template class sas::GenericVulkanPipeline<sas::VulkanDynamicShader>;
+      vertShader(dev, VulkanShaderConfig{
+                          .stage = VK_SHADER_STAGE_VERTEX_BIT,
+                          .spirvCode = vertCode,
+                          .descriptor = desc.getDescriptorLayout(),
+                          .nextStage = VK_SHADER_STAGE_FRAGMENT_BIT}),
+
+      fragShader(dev, VulkanShaderConfig{
+        .stage = VK_SHADER_STAGE_FRAGMENT_BIT, 
+        .spirvCode = fragCode, 
+        .descriptor = desc.getDescriptorLayout()})
+{
+}
+
+template class sas::VulkanPipeline<sas::VulkanShader>;
+template class sas::VulkanPipeline<sas::VulkanDynamicShader>;
