@@ -23,6 +23,7 @@ namespace sas
         ~VulkanDescriptor() noexcept
         {
            vkDestroyDescriptorPool(device, descriptorPool, nullptr); 
+           vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
         }
     };
 

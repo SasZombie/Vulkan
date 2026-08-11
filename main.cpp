@@ -52,12 +52,15 @@ int main()
 
         uint32_t firstEntity = firstScene.sceneRegistry.createEntity();
 
-        RenderObject renObj = engine.assetManager.loadMesh("resources/models/sphere.obj");
+        RenderMesh renderMesh = engine.assetManager.loadMesh("resources/models/sphere.obj");
+        RenderTexture renderTexture = engine.assetManager.loadTexture("resources/textures/goldTexture.bmp");
+        RenderObject renObj;
 
+        engine.assetManager.addTexture(renObj, renderTexture);
+
+        renObj.mesh = &renderMesh;
         renObj.shader = &engine.vkRenderer.dynamicShaderPipeline;
-        
-        engine.assetManager.addTexture(renObj, "resources/textures/goldTexture.bmp");
-        
+
         firstScene.sceneRegistry.addComponent(firstEntity, renObj);
 
         engine.addScene(firstScene);

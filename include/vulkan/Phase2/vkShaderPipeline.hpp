@@ -6,6 +6,7 @@
 #include "vkDescriptor.hpp"
 
 #include <vector>
+#include <iostream>
 
 namespace sas
 {
@@ -19,13 +20,6 @@ namespace sas
     {
         VkShaderEXT shaderModule;
         VkShaderCreateInfoEXT shaderStageInfo{};
-    };
-
-    struct VulkanShaderDescriptor
-    {
-        VkSampler sampler;
-        VkDescriptorSetLayout descriptorSet;
-        VkDescriptorPool descriptorPool;
     };
 
     template <typename ShaderStruct>
@@ -48,6 +42,7 @@ namespace sas
             : device(other.device), shader(other.shader)
         {
             other.shader.shaderModule = VK_NULL_HANDLE;
+            other.device = VK_NULL_HANDLE;
         }
 
         ManagedShader &operator=(ManagedShader &&other) noexcept
@@ -58,6 +53,7 @@ namespace sas
                 device = other.device;
                 shader = other.shader;
                 other.shader.shaderModule = nullptr;
+                other.device = VK_NULL_HANDLE;
             }
             return *this;
         }
@@ -73,9 +69,13 @@ namespace sas
 
     private:
         void cleanup() noexcept
-        {
+        {            
+            std::cout << "Shader cleanup clled \n";
+            
             if (device != VK_NULL_HANDLE)
             {
+                std::cout << "Shader cleanup clled and not with null device \n";
+
                 if constexpr (std::is_same_v<ShaderStruct, VulkanShader>)
                 {
                     vkDestroyShaderModule(device, shader.shaderModule, nullptr);
@@ -83,6 +83,11 @@ namespace sas
                 else if constexpr (std::is_same_v<ShaderStruct, VulkanDynamicShader>)
                 {
                     vkDestroyShaderEXT(device, shader.shaderModule, nullptr);
+                }
+                else
+                {
+                    std::cout << "Shader cleanup clled and not with unknwen shader \n";
+
                 }
             }
         }
@@ -105,10 +110,6 @@ namespace sas
         GenericVulkanPipeline &operator=(GenericVulkanPipeline &&) noexcept = default;
         ~GenericVulkanPipeline() = default;
 
-        // [[nodiscard]] std::pair<VkDescriptorSet, VkDescriptorSetLayout> getShaderDescriptor() const noexcept
-        // {
-        //     return std::make_pair(descriptorSet, descriptorSetLayout);
-        // }
 
         [[nodiscard]] std::pair<ShaderType, ShaderType> getShaderStages() const noexcept
         {
@@ -121,10 +122,6 @@ namespace sas
         ManagedShader<ShaderType> vertShader;
         ManagedShader<ShaderType> fragShader;
 
-        // VkDescriptorSet descriptorSet{};
-        // VkDescriptorSetLayout descriptorSetLayout{};
-
-        // void createDescriptors() noexcept;
         void createShaders() noexcept;
     };
 

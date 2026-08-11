@@ -15,20 +15,21 @@ namespace sas
         VulkanDevices &vulkanCtx;
         VulkanSharedObjects &sharedObjs;
         VulkanSampler sampler;
-        std::unordered_map<std::string, RenderObject> meshCache;
+        std::unordered_map<std::string, RenderMesh> meshCache;
         std::unordered_map<std::string, RenderTexture> textureCache;
 
         Mesh getRawMesh(std::string_view path) const noexcept;
         uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
         void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory) const noexcept;
-        RenderObject createGpuMesh(const sas::Mesh &mesh) const noexcept;
+        RenderMesh createGpuMesh(const sas::Mesh &mesh) const noexcept;
 
     public:
         AssetManager(VulkanDevices &ctx, VulkanSharedObjects& obj) noexcept;
 
-        RenderObject loadMesh(const std::string &path) noexcept;
+        RenderMesh loadMesh(const std::string &path) noexcept;
         RenderTexture loadTexture(const std::string& path) noexcept;
         void addTexture(RenderObject& objWithMesh, const std::string &path) noexcept;
+        void addTexture(RenderObject& objWithMesh, const RenderTexture &texture) noexcept;
 
         ~AssetManager() noexcept
         {
@@ -54,6 +55,26 @@ namespace sas
                 if (seccond.indexBufferMemory)
                 {
                     vkFreeMemory(vulkanCtx.vkDevice, seccond.indexBufferMemory, nullptr);
+                }
+            }
+
+            for (auto &elem : textureCache)
+            {
+                const auto& seccond = elem.second;
+
+
+                if (seccond.memory)
+                {
+                    vkFreeMemory(vulkanCtx.vkDevice, seccond.memory, nullptr);
+                }
+                if (seccond.image)
+                {
+                    vkDestroyImage(vulkanCtx.vkDevice, seccond.image, nullptr);
+                }
+
+                if (seccond.view)
+                {
+                    vkDestroyImageView(vulkanCtx.vkDevice, seccond.view, nullptr);
                 }
             }
         }

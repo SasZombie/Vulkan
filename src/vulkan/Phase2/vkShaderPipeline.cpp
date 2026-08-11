@@ -24,43 +24,13 @@ static std::vector<char> readFile(const std::string &filename)
     return buffer;
 }
 template <typename ShaderType>
-sas::GenericVulkanPipeline<ShaderType>::GenericVulkanPipeline(VulkanDevice &vulkanDevice, VulkanDescriptor& desc) noexcept
+sas::GenericVulkanPipeline<ShaderType>::GenericVulkanPipeline(VulkanDevice &vulkanDevice, VulkanDescriptor &desc) noexcept
     : device(vulkanDevice), descriptor(desc)
 {
+    std::cout << "Shader Constrsct clled \n";
+
     createShaders();
 }
-
-// template <typename ShaderType>
-// void sas::GenericVulkanPipeline<ShaderType>::createDescriptors() noexcept
-// {
-//     VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-//     samplerLayoutBinding.binding = 0;
-//     samplerLayoutBinding.descriptorCount = 1;
-//     samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-//     samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-//     VkDescriptorSetLayoutCreateInfo layoutInfo{};
-//     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-//     layoutInfo.bindingCount = 1;
-//     layoutInfo.pBindings = &samplerLayoutBinding;
-
-//     vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout);
-
-//     VkDescriptorPoolSize poolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1};
-//     VkDescriptorPoolCreateInfo poolInfo{
-//         VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO, nullptr, 0, 1, 1, &poolSize};
-//     VkDescriptorPool descriptorPool;
-
-//     vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool);
-
-//     VkDescriptorSetAllocateInfo allocSetInfo{
-//         VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-//         nullptr,
-//         descriptorPool,
-//         1,
-//         &descriptorSetLayout};
-//     vkAllocateDescriptorSets(device, &allocSetInfo, &descriptorSet);
-// }
 
 template <typename ShaderType>
 void sas::GenericVulkanPipeline<ShaderType>::createShaders() noexcept
@@ -70,6 +40,8 @@ void sas::GenericVulkanPipeline<ShaderType>::createShaders() noexcept
 
     if constexpr (std::is_same_v<ShaderType, VulkanShader>)
     {
+        VulkanShader vert{}, frag{};
+
         auto populateShader = [&](VulkanShader &shader, std::vector<char> &data)
         {
             VkShaderModuleCreateInfo createInfo;
@@ -87,20 +59,25 @@ void sas::GenericVulkanPipeline<ShaderType>::createShaders() noexcept
             shader.shaderStageInfo.pName = "main";
         };
 
-        vertShader.get().shaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-        populateShader(vertShader.get(), vertShaderCode);
+        vert.shaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+        populateShader(vert, vertShaderCode);
 
-        fragShader.get().shaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-        populateShader(fragShader.get(), fragShaderCode);
+        frag.shaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        populateShader(frag, fragShaderCode);
+
+        vertShader = ManagedShader<VulkanShader>(device, vert);
+        fragShader = ManagedShader<VulkanShader>(device, frag);
     }
     else if constexpr (std::is_same_v<ShaderType, VulkanDynamicShader>)
     {
+        VulkanDynamicShader vert{}, frag{};
+
         VkPushConstantRange pushRange{};
         pushRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
         pushRange.offset = 0;
         pushRange.size = sizeof(PushConstants);
 
-        const auto& descLay = descriptor.getDescriptorLayout();
+        const auto &descLay = descriptor.getDescriptorLayout();
 
         // VERTEX
         VkShaderCreateInfoEXT vertCreateInfo{};
@@ -116,7 +93,7 @@ void sas::GenericVulkanPipeline<ShaderType>::createShaders() noexcept
         vertCreateInfo.setLayoutCount = 1;
         vertCreateInfo.pSetLayouts = &descLay;
 
-        vkCreateShadersEXT(device, 1, &vertCreateInfo, nullptr, &vertShader.get().shaderModule);
+        vkCreateShadersEXT(device, 1, &vertCreateInfo, nullptr, &vert.shaderModule);
 
         // FRAGMENT
         VkShaderCreateInfoEXT fragCreateInfo{};
@@ -130,15 +107,18 @@ void sas::GenericVulkanPipeline<ShaderType>::createShaders() noexcept
         fragCreateInfo.pushConstantRangeCount = 1;
         fragCreateInfo.pPushConstantRanges = &pushRange;
         fragCreateInfo.setLayoutCount = 1;
-        
+
         fragCreateInfo.pSetLayouts = &descLay;
 
-        vkCreateShadersEXT(device, 1, &fragCreateInfo, nullptr, &fragShader.get().shaderModule);
+        vkCreateShadersEXT(device, 1, &fragCreateInfo, nullptr, &frag.shaderModule);
+
+        vertShader = ManagedShader<VulkanDynamicShader>(device, vert);
+        fragShader = ManagedShader<VulkanDynamicShader>(device, frag);
     }
 }
 
-template class sas::ManagedShader<sas::VulkanShader>;
-template class sas::ManagedShader<sas::VulkanDynamicShader>;
+// template class sas::ManagedShader<sas::VulkanShader>;
+// template class sas::ManagedShader<sas::VulkanDynamicShader>;
 
 template class sas::GenericVulkanPipeline<sas::VulkanShader>;
 template class sas::GenericVulkanPipeline<sas::VulkanDynamicShader>;

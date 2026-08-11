@@ -245,7 +245,7 @@ static void _faceTokenize(const std::string &source, std::vector<std::string> &t
         }
     }
 
-    std::cout << "Loading:  " << filename << '\n';
+    std::cout << "Loading: object " << filename << '\n';
 
     return {vertices, indices};
 }
@@ -299,7 +299,7 @@ void sas::AssetManager::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage
     vkBindBufferMemory(vulkanCtx.vkDevice, buffer, bufferMemory, 0);
 }
 
-sas::RenderObject sas::AssetManager::createGpuMesh(const sas::Mesh &mesh) const noexcept
+sas::RenderMesh sas::AssetManager::createGpuMesh(const sas::Mesh &mesh) const noexcept
 {
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
@@ -325,16 +325,16 @@ sas::RenderObject sas::AssetManager::createGpuMesh(const sas::Mesh &mesh) const 
     memcpy(data, mesh.indices.data(), (size_t)sizeof(mesh.indices[0]) * mesh.indices.size());
     vkUnmapMemory(vulkanCtx.vkDevice, indexBufferMemory);
 
-    return {vertexBuffer, indexBuffer, vertexBufferMemory, indexBufferMemory, nullptr, nullptr, mesh.indices.size()};
+    return {vertexBuffer, indexBuffer, vertexBufferMemory, indexBufferMemory, mesh.indices.size()};
 }
 
-sas::AssetManager::AssetManager(VulkanDevices &ctx, VulkanSharedObjects& shardObj) noexcept
+sas::AssetManager::AssetManager(VulkanDevices &ctx, VulkanSharedObjects &shardObj) noexcept
     : vulkanCtx(ctx), sharedObjs(shardObj), sampler(vulkanCtx.vkDevice)
 {
     loadTexture(defaulTexturePath);
 }
 
-sas::RenderObject sas::AssetManager::loadMesh(const std::string &path) noexcept
+sas::RenderMesh sas::AssetManager::loadMesh(const std::string &path) noexcept
 {
     if (meshCache.contains(path))
     {
@@ -342,7 +342,7 @@ sas::RenderObject sas::AssetManager::loadMesh(const std::string &path) noexcept
     }
     const auto &loadedMesh = getRawMesh(path);
 
-    RenderObject gpuObject = createGpuMesh(loadedMesh);
+    RenderMesh gpuObject = createGpuMesh(loadedMesh);
     VkBuffer buffers[] = {gpuObject.vertexBuffer};
 
     VkDeviceSize offsets[] = {0};
@@ -366,7 +366,7 @@ sas::RenderObject sas::AssetManager::loadMesh(const std::string &path) noexcept
 sas::RenderTexture sas::AssetManager::loadTexture(const std::string &path) noexcept
 {
 
-    if(textureCache.contains(path))
+    if (textureCache.contains(path))
     {
         return textureCache.at(path);
     }
@@ -385,6 +385,8 @@ sas::RenderTexture sas::AssetManager::loadTexture(const std::string &path) noexc
         std::cerr << "[[Warning]]! Cannot load default texture. This might crash the program!\n";
         return {};
     }
+
+    std::cout << "Loading: texture " << path << '\n';
 
     VkDeviceSize imageSize = static_cast<VkDeviceSize>(texWidth) * texHeight * 4;
 
@@ -525,8 +527,14 @@ sas::RenderTexture sas::AssetManager::loadTexture(const std::string &path) noexc
 
 void sas::AssetManager::addTexture(RenderObject &objWithMesh, const std::string &path) noexcept
 {
-    const auto& texture = loadTexture(path);
 
+    const auto &texture = loadTexture(path);
+
+    addTexture(objWithMesh, texture);
+}
+
+void sas::AssetManager::addTexture(RenderObject &objWithMesh, const RenderTexture &texture) noexcept
+{
     objWithMesh.descriptorSet = sharedObjs.shaderDescriptor.allocateDescSet();
     VkDescriptorSet dstSet = objWithMesh.descriptorSet;
 

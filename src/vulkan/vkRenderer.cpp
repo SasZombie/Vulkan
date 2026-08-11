@@ -29,8 +29,8 @@ void sas::VulkanRenderer::drawFrame(const std::vector<RenderObject> &objectsToRe
 
     for (const auto &renderObj : objectsToRender)
     {
-        // drawCallRecorderDynamic(renderObj);
-        drawCallRecorder(renderObj);
+        drawCallRecorderDynamic(renderObj);
+        // drawCallRecorder(renderObj);
     }
 
     vkCmdEndRendering(vulkanLowLvl.vkCommand.getCommandBuffer());
@@ -186,8 +186,8 @@ void sas::VulkanRenderer::drawCallRecorderDynamic(const RenderObject &renderObj)
     vkCmdBindShadersEXT(comandBuff, 2, stages, shaders);
 
     VkDeviceSize offsets[] = {0};
-    vkCmdBindVertexBuffers(comandBuff, 0, 1, &renderObj.vertexBuffer, offsets);
-    vkCmdBindIndexBuffer(comandBuff, renderObj.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdBindVertexBuffers(comandBuff, 0, 1, &renderObj.mesh->vertexBuffer, offsets);
+    vkCmdBindIndexBuffer(comandBuff, renderObj.mesh->indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
     vkCmdBindDescriptorSets(
         comandBuff,
@@ -206,7 +206,7 @@ void sas::VulkanRenderer::drawCallRecorderDynamic(const RenderObject &renderObj)
                        sizeof(PushConstants),
                        &constants);
 
-    vkCmdDrawIndexed(comandBuff, renderObj.indexCount, 1, 0, 0, 0);
+    vkCmdDrawIndexed(comandBuff, renderObj.mesh->indexCount, 1, 0, 0, 0);
 }
 
 void sas::VulkanRenderer::drawCallRecorder(const RenderObject &renderObj) const noexcept
@@ -233,11 +233,11 @@ void sas::VulkanRenderer::drawCallRecorder(const RenderObject &renderObj) const 
         );
     }
 
-    VkBuffer buffers[] = {renderObj.vertexBuffer};
+    VkBuffer buffers[] = {renderObj.mesh->vertexBuffer};
 
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(vulkanLowLvl.vkCommand.getCommandBuffer(), 0, 1, buffers, offsets);
-    vkCmdBindIndexBuffer(vulkanLowLvl.vkCommand.getCommandBuffer(), renderObj.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdBindIndexBuffer(vulkanLowLvl.vkCommand.getCommandBuffer(), renderObj.mesh->indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
     PushConstants constants{camera.getMVP()};
 
@@ -249,7 +249,7 @@ void sas::VulkanRenderer::drawCallRecorder(const RenderObject &renderObj) const 
         sizeof(PushConstants),
         &constants.mvp);
 
-    vkCmdDrawIndexed(vulkanLowLvl.vkCommand.getCommandBuffer(), static_cast<uint32_t>(renderObj.indexCount), 1, 0, 0, 0);
+    vkCmdDrawIndexed(vulkanLowLvl.vkCommand.getCommandBuffer(), static_cast<uint32_t>(renderObj.mesh->indexCount), 1, 0, 0, 0);
 }
 
 void sas::VulkanRenderer::imageLayoutTransitionPresent(VkImageMemoryBarrier2 &barrierToRender) const noexcept

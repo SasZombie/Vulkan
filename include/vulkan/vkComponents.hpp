@@ -67,18 +67,22 @@ namespace sas
         VkImageView view;
     };
 
-    struct RenderObject
+    struct RenderMesh
     {
         VkBuffer vertexBuffer;
         VkBuffer indexBuffer;
         VkDeviceMemory vertexBufferMemory;
         VkDeviceMemory indexBufferMemory;
+        size_t indexCount;
+    };
 
+    struct RenderObject
+    {
+        RenderMesh* mesh;
         VulkanDynamicShaderPipeline *shader;
 
         VkDescriptorSet descriptorSet;
 
-        size_t indexCount;
     };
 
 } // namespace sas
