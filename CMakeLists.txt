@@ -33,14 +33,16 @@ add_library(volk STATIC deps/volk.c)
 target_include_directories(volk PUBLIC deps)
 target_link_libraries(volk PUBLIC Vulkan::Headers ${CMAKE_DL_LIBS})
 
+SET(ENGINE_SOURCES
+    Camera.cpp
+    SceneNode.cpp
+    CrimsonBlossom.cpp
+    AssetManager.cpp
+    Mesh.cpp
+)
 
 SET(GLOBAL_SOURCES
-    src/Window.cpp
-    src/Camera.cpp
-    src/SceneNode.cpp
-    src/CrimsonBlossom.cpp
-    src/AssetManager.cpp
-    src/Mesh.cpp
+    Window.cpp
 )
 
 SET(VULKAN_SOURCES
@@ -66,16 +68,19 @@ SET(PHASE_2_SOURCES
     vkMasterPipeline.cpp
 )
 
+list(TRANSFORM GLOBAL_SOURCES  PREPEND "src/")
 list(TRANSFORM PHASE_1_SOURCES PREPEND "src/vulkan/Phase1/")
 list(TRANSFORM PHASE_2_SOURCES PREPEND "src/vulkan/Phase2/")
-list(TRANSFORM VULKAN_SOURCES PREPEND "src/vulkan/")
+list(TRANSFORM ENGINE_SOURCES  PREPEND "src/vulkan/CrimsonBlossom/")
+list(TRANSFORM VULKAN_SOURCES  PREPEND "src/vulkan/")
 
-add_executable(main main.cpp ${GLOBAL_SOURCES} ${PHASE_1_SOURCES} ${PHASE_2_SOURCES} ${VULKAN_SOURCES})
+add_executable(main main.cpp ${GLOBAL_SOURCES} ${PHASE_1_SOURCES} ${PHASE_2_SOURCES} ${VULKAN_SOURCES} ${ENGINE_SOURCES})
 add_subdirectory(deps/Engine)
 
 
 target_include_directories(main PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/CrimsonBlossom
     ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan
     ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/Phase1
     ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/Phase2

@@ -72,6 +72,8 @@ namespace sas
         void gpuCall(uint32_t imageIndex) const noexcept;
 
         void presentImageToWindow(uint32_t imageIndex) const noexcept;
+
+        void setUpShader() const noexcept;
     };
 
 } // namespace sas

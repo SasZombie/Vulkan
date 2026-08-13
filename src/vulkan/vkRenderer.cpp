@@ -266,3 +266,8 @@ void sas::VulkanRenderer::presentImageToWindow(uint32_t imageIndex) const noexce
 
     vkQueuePresentKHR(vulkanLowLvl.vkDevice.getQueue(), &presentInfo);
 }
+
+void sas::VulkanRenderer::setUpShader() const noexcept
+{
+    
+}

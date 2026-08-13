@@ -504,17 +504,6 @@ sas::RenderTexture sas::AssetManager::loadTexture(const std::string &path) noexc
     VkImageView textureImageView;
     vkCreateImageView(vulkanCtx.vkDevice, &viewInfo, nullptr, &textureImageView);
 
-    VkSamplerCreateInfo samplerInfo{};
-    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    samplerInfo.magFilter = VK_FILTER_LINEAR;
-    samplerInfo.minFilter = VK_FILTER_LINEAR;
-    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-
-    VkSampler textureSampler;
-    vkCreateSampler(vulkanCtx.vkDevice, &samplerInfo, nullptr, &textureSampler);
-
     RenderTexture t;
     t.image = textureImage;
     t.view = textureImageView;
