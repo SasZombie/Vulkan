@@ -26,6 +26,7 @@ namespace sas
     class VulkanDynamicShader
     {
     private:
+        uint32_t id;
         VulkanDevice &device;
         VkShaderEXT vertexShader;
         VkShaderEXT fragmentShader;
@@ -33,13 +34,13 @@ namespace sas
         void populateShader(VkShaderEXT &shader, const VulkanShaderConfig &config, const std::vector<uint32_t> &codeData) noexcept;
 
     public:
-        VulkanDynamicShader(VulkanDevice &dev, const VulkanDescriptor &desc, const std::string& vert, const std::string& frag);
+        VulkanDynamicShader(uint32_t shaderId, VulkanDevice &dev, const VulkanDescriptor &desc, const std::string& vert, const std::string& frag);
 
         VulkanDynamicShader(const VulkanDynamicShader &) = delete;
         VulkanDynamicShader &operator=(const VulkanDynamicShader &) = delete;
 
         VulkanDynamicShader(VulkanDynamicShader &&other) noexcept
-            : device(other.device), vertexShader(other.vertexShader), fragmentShader(other.fragmentShader)
+            : id(other.id), device(other.device), vertexShader(other.vertexShader), fragmentShader(other.fragmentShader)
         {
             other.vertexShader = nullptr;
             other.fragmentShader = nullptr;
@@ -61,6 +62,11 @@ namespace sas
                 other.fragmentShader = VK_NULL_HANDLE;
             }
             return *this;
+        }
+
+        [[nodiscard]] uint32_t getId() const noexcept
+        {
+            return id;
         }
 
         ~VulkanDynamicShader()

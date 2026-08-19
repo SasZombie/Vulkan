@@ -55,8 +55,8 @@ void sas::VulkanDynamicShader::populateShader(VkShaderEXT &shader, const VulkanS
     vkCreateShadersEXT(device, 1, &shaderStageInfo, nullptr, &shader);
 }
 
-sas::VulkanDynamicShader::VulkanDynamicShader(VulkanDevice &dev, const VulkanDescriptor &desc, const std::string& vert, const std::string& frag)
-    : device(dev)
+sas::VulkanDynamicShader::VulkanDynamicShader(uint32_t shaderId, VulkanDevice &dev, const VulkanDescriptor &desc, const std::string& vert, const std::string& frag)
+    : id(shaderId), device(dev)
 {
     const auto &vertCode = readFile(vert);
     const auto &fragCode = readFile(frag);

@@ -517,14 +517,17 @@ sas::RenderTexture sas::AssetManager::loadTexture(const std::string &path) noexc
 sas::VulkanDynamicShader &sas::AssetManager::loadShader(const std::string &vert, const std::string &frag) noexcept
 {
     auto key = std::make_pair(vert, frag);
+    static size_t shaderID = 0;
 
     auto [it, inserted] = shaderCache.try_emplace(
         std::move(key),
+        shaderID,
         vulkanCtx.vkDevice,
         sharedObjs.shaderDescriptor,
         vert,
         frag);
 
+    ++shaderID;
     return it->second;
 }
 
