@@ -51,7 +51,6 @@ namespace sas
         VulkanSharedObjects& sharedObjects;
 
         VulkanInputPipeline inputPipeline;
-        VulkanDynamicShader dynamicShaderPipeline;
         VulkanViewport viewPort;
         VulkanPixelStyling pixelStyle;
         VulkanRastarization raster;

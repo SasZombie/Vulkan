@@ -33,7 +33,7 @@ namespace sas
         void populateShader(VkShaderEXT &shader, const VulkanShaderConfig &config, const std::vector<uint32_t> &codeData) noexcept;
 
     public:
-        VulkanDynamicShader(VulkanDevice &dev, const VulkanDescriptor &desc);
+        VulkanDynamicShader(VulkanDevice &dev, const VulkanDescriptor &desc, const std::string& vert, const std::string& frag);
 
         VulkanDynamicShader(const VulkanDynamicShader &) = delete;
         VulkanDynamicShader &operator=(const VulkanDynamicShader &) = delete;

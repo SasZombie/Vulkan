@@ -54,13 +54,14 @@ int main()
 
         RenderMesh renderMesh = engine.assetManager.loadMesh("resources/models/sphere.obj");
         RenderTexture renderTexture = engine.assetManager.loadTexture("resources/textures/goldTexture.bmp");
+        VulkanDynamicShader& shader = engine.assetManager.loadShader("shaders/spv/vert.spv", "shaders/spv/frag.spv");
         
         RenderObject renObj;
 
         engine.assetManager.addTexture(renObj, renderTexture);
 
         renObj.mesh = &renderMesh;
-        renObj.shader = &engine.vkRenderer.dynamicShaderPipeline;
+        renObj.shader = &shader;
 
         firstScene.sceneRegistry.addComponent(firstEntity, renObj);
 

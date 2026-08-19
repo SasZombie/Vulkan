@@ -33,7 +33,6 @@ namespace sas
     struct VulkanPipelineComponents
     {
         VulkanBridge *bridge;
-        VulkanDynamicShader *shaderPipeline;
         VulkanInputPipeline *inputPipeline;
         VulkanViewport *viewport;
         VulkanRastarization *rastar;

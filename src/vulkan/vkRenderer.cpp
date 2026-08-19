@@ -5,9 +5,8 @@ sas::VulkanRenderer::VulkanRenderer(Window &nwindow, Camera &ncamera, VulkanDevi
       camera(ncamera),
       vulkanLowLvl(nvulkanLowLvl),
       sharedObjects(sharedObj),
-      dynamicShaderPipeline(vulkanLowLvl.vkDevice, sharedObjects.shaderDescriptor),
       viewPort(window),
-      components{&vulkanLowLvl.vkBridge, &dynamicShaderPipeline, &inputPipeline, &viewPort, &raster, &pixelStyle, &sharedObjects},
+      components{&vulkanLowLvl.vkBridge, &inputPipeline, &viewPort, &raster, &pixelStyle, &sharedObjects},
       masterPipeline(vulkanLowLvl.vkDevice, components)
 {
 }

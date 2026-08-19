@@ -44,11 +44,8 @@ void sas::VulkanDynamicShader::populateShader(VkShaderEXT &shader, const VulkanS
     shaderStageInfo.setLayoutCount = 1;
     shaderStageInfo.pSetLayouts = &descLay;
 
-    // ✅ Pass the exact same layout signature to ALL shaders.
-    // Even if this is the Fragment shader, it needs to know that the 
-    // overall pipeline layout contains a Vertex push constant.
     VkPushConstantRange pushRange{};
-    pushRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT; // Always VERTEX_BIT, matching your pipeline layout
+    pushRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT; 
     pushRange.offset = 0;
     pushRange.size = sizeof(PushConstants);
 
@@ -58,12 +55,12 @@ void sas::VulkanDynamicShader::populateShader(VkShaderEXT &shader, const VulkanS
     vkCreateShadersEXT(device, 1, &shaderStageInfo, nullptr, &shader);
 }
 
-sas::VulkanDynamicShader::VulkanDynamicShader(VulkanDevice &dev, const VulkanDescriptor &desc)
+sas::VulkanDynamicShader::VulkanDynamicShader(VulkanDevice &dev, const VulkanDescriptor &desc, const std::string& vert, const std::string& frag)
     : device(dev)
 {
-    const auto &vertCode = readFile("shaders/spv/vert.spv");
-    const auto &fragCode = readFile("shaders/spv/frag.spv");
-
+    const auto &vertCode = readFile(vert);
+    const auto &fragCode = readFile(frag);
+    
     if (vertCode.empty() || fragCode.empty())
     {
         throw std::runtime_error("Cannot open vert or frag code");
