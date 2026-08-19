@@ -54,6 +54,7 @@ int main()
 
         RenderMesh renderMesh = engine.assetManager.loadMesh("resources/models/sphere.obj");
         RenderTexture renderTexture = engine.assetManager.loadTexture("resources/textures/goldTexture.bmp");
+        
         RenderObject renObj;
 
         engine.assetManager.addTexture(renObj, renderTexture);

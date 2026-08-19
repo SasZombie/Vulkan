@@ -6,6 +6,7 @@
 
 namespace sas
 {
+    //TODO: This needs to re-use allocations and stuff
     class CrimsonBlossom
     {
     public:

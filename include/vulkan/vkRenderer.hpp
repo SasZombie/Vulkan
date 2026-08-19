@@ -21,6 +21,8 @@
 namespace sas
 {
 
+    //TODO: Renderer should have multiple sub-renderers to take advantage
+    //Of how vulkan works
     class VulkanRenderer
     {
     public:
@@ -65,7 +67,7 @@ namespace sas
 
         void dynamicRendering(uint32_t imageIndex) const noexcept;
 
-        void drawCallRecorderDynamic(const RenderObject& renderObj) const noexcept;
+        void drawCallRecorder(const RenderObject& renderObj) const noexcept;
 
         void imageLayoutTransitionPresent(VkImageMemoryBarrier2 &barrierToRender) const noexcept;
 
@@ -73,7 +75,9 @@ namespace sas
 
         void presentImageToWindow(uint32_t imageIndex) const noexcept;
 
-        void setUpShader() const noexcept;
+        void setUpShader(const RenderObject &renderObj) const noexcept;
+        void setUpRaster(const RenderObject &renderObj) const noexcept;
+        void setUpViewPort(const RenderObject &renderObj) const noexcept;
     };
 
 } // namespace sas

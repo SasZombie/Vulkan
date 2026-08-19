@@ -1,6 +1,6 @@
 #include "vkRenderer.hpp"
 #include "Mesh.hpp"
-sas::VulkanRenderer::VulkanRenderer(Window &nwindow, Camera &ncamera, VulkanDevices &nvulkanLowLvl, VulkanSharedObjects& sharedObj)
+sas::VulkanRenderer::VulkanRenderer(Window &nwindow, Camera &ncamera, VulkanDevices &nvulkanLowLvl, VulkanSharedObjects &sharedObj)
     : window(nwindow),
       camera(ncamera),
       vulkanLowLvl(nvulkanLowLvl),
@@ -28,8 +28,7 @@ void sas::VulkanRenderer::drawFrame(const std::vector<RenderObject> &objectsToRe
 
     for (const auto &renderObj : objectsToRender)
     {
-        drawCallRecorderDynamic(renderObj);
-        // drawCallRecorder(renderObj);
+        drawCallRecorder(renderObj);
     }
 
     vkCmdEndRendering(vulkanLowLvl.vkCommand.getCommandBuffer());
@@ -103,6 +102,7 @@ void sas::VulkanRenderer::dynamicRendering(uint32_t imageIndex) const noexcept
 
     VkRenderingInfo renderingInfo{};
     renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+    // TODO: Render Area should maybe be dynamic
     renderingInfo.renderArea = {{0, 0}, {static_cast<unsigned int>(window.getWidth()), static_cast<unsigned int>(window.getHeight())}};
     renderingInfo.layerCount = 1;
     renderingInfo.colorAttachmentCount = 1;
@@ -111,78 +111,17 @@ void sas::VulkanRenderer::dynamicRendering(uint32_t imageIndex) const noexcept
     vkCmdBeginRendering(vulkanLowLvl.vkCommand.getCommandBuffer(), &renderingInfo);
 }
 
-void sas::VulkanRenderer::drawCallRecorderDynamic(const RenderObject &renderObj) const noexcept
+void sas::VulkanRenderer::drawCallRecorder(const RenderObject &renderObj) const noexcept
 {
-    const auto &rasterInfo = raster.getRasterizer();
     const auto &comandBuff = vulkanLowLvl.vkCommand.getCommandBuffer();
-
-    vkCmdSetRasterizationSamplesEXT(comandBuff, raster.getMultisampling().rasterizationSamples);
-
-    vkCmdSetAlphaToCoverageEnableEXT(comandBuff, VK_FALSE);
-
-    vkCmdSetPrimitiveRestartEnable(comandBuff, VK_FALSE);
-    vkCmdSetStencilTestEnable(comandBuff, VK_FALSE);
-    vkCmdSetDepthTestEnable(comandBuff, VK_TRUE);
-    vkCmdSetDepthWriteEnable(comandBuff, VK_TRUE);
-    vkCmdSetRasterizerDiscardEnable(comandBuff, VK_FALSE);
-    vkCmdSetDepthCompareOp(comandBuff, VK_COMPARE_OP_LESS_OR_EQUAL);
-
-    VkSampleMask sampleMask = 0xFFFFFFFF;
-    vkCmdSetSampleMaskEXT(comandBuff, raster.getMultisampling().rasterizationSamples, &sampleMask);
-
-    vkCmdSetDepthBiasEnable(comandBuff, VK_FALSE);
-
-    vkCmdSetPrimitiveTopologyEXT(vulkanLowLvl.vkCommand.getCommandBuffer(), inputPipeline.getInputAssembly().topology);
-    vkCmdSetPolygonModeEXT(vulkanLowLvl.vkCommand.getCommandBuffer(), rasterInfo.polygonMode);
-    vkCmdSetCullModeEXT(vulkanLowLvl.vkCommand.getCommandBuffer(), rasterInfo.cullMode);
-    vkCmdSetFrontFaceEXT(vulkanLowLvl.vkCommand.getCommandBuffer(), rasterInfo.frontFace);
-
-    vkCmdSetViewportWithCount(comandBuff, 1, &viewPort.getViewport());
-    vkCmdSetScissorWithCount(comandBuff, 1, &viewPort.getScissors());
-
-    VkBool32 blendEnable = VK_FALSE;
-    vkCmdSetColorBlendEnableEXT(comandBuff, 0, 1, &blendEnable);
-    VkColorComponentFlags colorMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                                      VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-    vkCmdSetColorWriteMaskEXT(comandBuff, 0, 1, &colorMask);
-
-    VkVertexInputBindingDescription2EXT bindingDesc{};
-    bindingDesc.sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_BINDING_DESCRIPTION_2_EXT;
-    bindingDesc.binding = 0;
-    bindingDesc.stride = sizeof(Vertex);
-    bindingDesc.divisor = 1;
-    bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-    VkVertexInputAttributeDescription2EXT attrDesc[4]{};
-    attrDesc[0].sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT;
-    attrDesc[0].location = 0; // inPosition
-    attrDesc[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attrDesc[0].offset = offsetof(Vertex, pos);
-
-    attrDesc[1].sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT;
-    attrDesc[1].location = 1; // inNormal
-    attrDesc[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attrDesc[1].offset = offsetof(Vertex, normals);
-
-    attrDesc[2].sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT;
-    attrDesc[2].location = 2; // inTextCoords
-    attrDesc[2].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attrDesc[2].offset = offsetof(Vertex, texCoord);
-
-    attrDesc[3].sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT;
-    attrDesc[3].location = 3; // inColor
-    attrDesc[3].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attrDesc[3].offset = offsetof(Vertex, color);
-
-    vkCmdSetVertexInputEXT(comandBuff, 1, &bindingDesc, 4, attrDesc);
-
-    VkShaderStageFlagBits stages[] = {VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT};
-    const auto &[vert, frag] = renderObj.shader->getShaderModule();
     const auto &descriptor = renderObj.descriptorSet;
 
-    VkShaderEXT shaders[] = {vert, frag};
+    setUpRaster(renderObj);
+    setUpViewPort(renderObj);
+    setUpShader(renderObj);
 
-    vkCmdBindShadersEXT(comandBuff, 2, stages, shaders);
+    vkCmdSetDepthBiasEnable(comandBuff, VK_FALSE);
+    vkCmdSetPrimitiveTopologyEXT(vulkanLowLvl.vkCommand.getCommandBuffer(), inputPipeline.getInputAssembly().topology);
 
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(comandBuff, 0, 1, &renderObj.mesh->vertexBuffer, offsets);
@@ -267,7 +206,84 @@ void sas::VulkanRenderer::presentImageToWindow(uint32_t imageIndex) const noexce
     vkQueuePresentKHR(vulkanLowLvl.vkDevice.getQueue(), &presentInfo);
 }
 
-void sas::VulkanRenderer::setUpShader() const noexcept
+void sas::VulkanRenderer::setUpShader(const RenderObject &renderObj) const noexcept
 {
-    
+    const auto &comandBuff = vulkanLowLvl.vkCommand.getCommandBuffer();
+
+    VkBool32 blendEnable = VK_FALSE;
+    vkCmdSetColorBlendEnableEXT(comandBuff, 0, 1, &blendEnable);
+    VkColorComponentFlags colorMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                                      VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    vkCmdSetColorWriteMaskEXT(comandBuff, 0, 1, &colorMask);
+
+    VkVertexInputBindingDescription2EXT bindingDesc{};
+    bindingDesc.sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_BINDING_DESCRIPTION_2_EXT;
+    bindingDesc.binding = 0;
+    bindingDesc.stride = sizeof(Vertex);
+    bindingDesc.divisor = 1;
+    bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+    VkVertexInputAttributeDescription2EXT attrDesc[4]{};
+    attrDesc[0].sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT;
+    attrDesc[0].location = 0; // inPosition
+    attrDesc[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+    attrDesc[0].offset = offsetof(Vertex, pos);
+
+    attrDesc[1].sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT;
+    attrDesc[1].location = 1; // inNormal
+    attrDesc[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+    attrDesc[1].offset = offsetof(Vertex, normals);
+
+    attrDesc[2].sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT;
+    attrDesc[2].location = 2; // inTextCoords
+    attrDesc[2].format = VK_FORMAT_R32G32B32_SFLOAT;
+    attrDesc[2].offset = offsetof(Vertex, texCoord);
+
+    attrDesc[3].sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT;
+    attrDesc[3].location = 3; // inColor
+    attrDesc[3].format = VK_FORMAT_R32G32B32_SFLOAT;
+    attrDesc[3].offset = offsetof(Vertex, color);
+
+    vkCmdSetVertexInputEXT(comandBuff, 1, &bindingDesc, 4, attrDesc);
+
+    VkShaderStageFlagBits stages[] = {VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT};
+    const auto &[vert, frag] = renderObj.shader->getShaderModule();
+
+    VkShaderEXT shaders[] = {vert, frag};
+
+    vkCmdBindShadersEXT(comandBuff, 2, stages, shaders);
+}
+
+// TODO: This should be per material
+// But I havent introduced that notion yet
+void sas::VulkanRenderer::setUpRaster(const RenderObject &renderObj) const noexcept
+{
+    const auto &rasterInfo = raster.getRasterizer();
+    const auto &comandBuff = vulkanLowLvl.vkCommand.getCommandBuffer();
+
+    vkCmdSetPolygonModeEXT(vulkanLowLvl.vkCommand.getCommandBuffer(), rasterInfo.polygonMode);
+    vkCmdSetCullModeEXT(vulkanLowLvl.vkCommand.getCommandBuffer(), rasterInfo.cullMode);
+    vkCmdSetFrontFaceEXT(vulkanLowLvl.vkCommand.getCommandBuffer(), rasterInfo.frontFace);
+
+    vkCmdSetRasterizationSamplesEXT(comandBuff, raster.getMultisampling().rasterizationSamples);
+
+    vkCmdSetAlphaToCoverageEnableEXT(comandBuff, VK_FALSE);
+
+    vkCmdSetPrimitiveRestartEnable(comandBuff, VK_FALSE);
+    vkCmdSetStencilTestEnable(comandBuff, VK_FALSE);
+    vkCmdSetDepthTestEnable(comandBuff, VK_TRUE);
+    vkCmdSetDepthWriteEnable(comandBuff, VK_TRUE);
+    vkCmdSetRasterizerDiscardEnable(comandBuff, VK_FALSE);
+    vkCmdSetDepthCompareOp(comandBuff, VK_COMPARE_OP_LESS_OR_EQUAL);
+
+    VkSampleMask sampleMask = 0xFFFFFFFF;
+    vkCmdSetSampleMaskEXT(comandBuff, raster.getMultisampling().rasterizationSamples, &sampleMask);
+}
+
+void sas::VulkanRenderer::setUpViewPort(const RenderObject &renderObj) const noexcept
+{
+    const auto &comandBuff = vulkanLowLvl.vkCommand.getCommandBuffer();
+
+    vkCmdSetViewportWithCount(comandBuff, 1, &viewPort.getViewport());
+    vkCmdSetScissorWithCount(comandBuff, 1, &viewPort.getScissors());
 }
