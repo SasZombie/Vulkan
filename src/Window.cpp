@@ -20,7 +20,7 @@ float yaw = -90.f, pitch = 0.f;
 
 double lastX = 400, lastY = 300;
 
-
+//TODO: Make this work normally
 void sas::Window::processKeyboardInput(Camera &camera) noexcept
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
