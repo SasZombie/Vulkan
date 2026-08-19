@@ -70,7 +70,7 @@ int main()
         while (!glfwWindowShouldClose(window))
         {
             glfwPollEvents();
-            window.processInput(camera);
+            window.processKeyboardInput(camera);
             engine.update();
         }
     }

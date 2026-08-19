@@ -25,8 +25,19 @@ void sas::VulkanRenderer::drawFrame(const std::vector<RenderObject> &objectsToRe
 
     dynamicRendering(imageIndex);
 
+    uint32_t prevId = 0;
+
     for (const auto &renderObj : objectsToRender)
     {
+        setUpRaster(renderObj);
+        setUpViewPort(renderObj);
+
+        if (renderObj.shader->getId() != prevId)
+        {
+            setUpShader(renderObj);
+            prevId = renderObj.shader->getId();
+        }
+
         drawCallRecorder(renderObj);
     }
 
@@ -114,10 +125,6 @@ void sas::VulkanRenderer::drawCallRecorder(const RenderObject &renderObj) const 
 {
     const auto &comandBuff = vulkanLowLvl.vkCommand.getCommandBuffer();
     const auto &descriptor = renderObj.descriptorSet;
-
-    setUpRaster(renderObj);
-    setUpViewPort(renderObj);
-    setUpShader(renderObj);
 
     vkCmdSetDepthBiasEnable(comandBuff, VK_FALSE);
     vkCmdSetPrimitiveTopologyEXT(vulkanLowLvl.vkCommand.getCommandBuffer(), inputPipeline.getInputAssembly().topology);

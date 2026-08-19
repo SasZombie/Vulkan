@@ -9,7 +9,6 @@
 
 namespace sas
 {
-
     class Window
     {
     private:
@@ -20,7 +19,9 @@ namespace sas
 
         Window(int width, int height, const std::string &title);
 
-        void processInput(Camera& camera) noexcept;
+        void processKeyboardInput(Camera& camera) noexcept;
+
+        void processMouseInput(Camera& camera) noexcept;
 
         Window(const Window &) = delete;
         Window &operator=(const Window &) = delete;

@@ -10,8 +10,12 @@
 void sas::CrimsonBlossom::update() noexcept
 {
 
-    const auto& allMeshComp = scenes[0].sceneRegistry.getComponents<RenderObject>();
+    auto& renderData = scenes[0].sceneRegistry.getComponents<RenderObject>()->getData();
     
-    vkRenderer.drawFrame(allMeshComp->getData());
+    std::sort(renderData.begin(), renderData.end(), [](const RenderObject& rendObj, const RenderObject& other){
+        return rendObj.shader->getId() < other.shader->getId();
+    });
+
+    vkRenderer.drawFrame(renderData);
     
 }

@@ -5,6 +5,12 @@ void sas::Camera::move(const math::Vec3 &movement) noexcept
     position = position + movement;
 }
 
+void sas::Camera::setViewDirection(const math::Vec3 &viewDir) noexcept
+{
+    viewDirection = viewDir;
+    rightVector = viewDir * upVector;
+}
+
 sas::math::Mat4 sas::Camera::getMVP() const noexcept
 {
     math::Mat4 model;
