@@ -71,6 +71,8 @@ static void _faceTokenize(const std::string &source, std::vector<std::string> &t
 
 [[nodiscard]] static sas::Mesh loadObj(std::string_view filename) noexcept
 {
+    const auto& logger = sas::BaseLogger::getLogger("Asset");
+
     std::vector<sas::Vertex> vertices;
     std::vector<int> indices;
 
@@ -78,7 +80,7 @@ static void _faceTokenize(const std::string &source, std::vector<std::string> &t
     std::ifstream file(std::string(filename), std::ios::in | std::ios::binary);
     if (!file)
     {
-        std::cerr << "Model not found " << filename << '\n';
+        logger->warn("Model not found " + std::string(filename));
         return {};
     }
 
@@ -246,7 +248,7 @@ static void _faceTokenize(const std::string &source, std::vector<std::string> &t
         }
     }
 
-    std::cout << "Loading: object " << filename << '\n';
+    logger->log("Loading: object " + std::string(filename));
 
     return {vertices, indices};
 }
@@ -417,8 +419,6 @@ sas::RenderTexture sas::AssetManager::loadTexture(const std::string &path) noexc
     {
         return textureCache.at(path);
     }
-    
-
 
     int texWidth, texHeight, texChannels;
     stbi_uc *pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
