@@ -20,7 +20,7 @@ float yaw = -90.f, pitch = 0.f;
 
 double lastX = 400, lastY = 300;
 
-//TODO: Make this work normally
+//This is the "Debug Camera basically"
 void sas::Window::processKeyboardInput(Camera &camera) noexcept
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -53,7 +53,6 @@ void sas::Window::processKeyboardInput(Camera &camera) noexcept
     {
         yaw -= rotationSpeed; // Subtracting yaw turns the camera left
 
-        // Recalculate and update the camera's view direction
         sas::math::Vec3 front;
         front.x = cos(sas::math::degToRad(yaw)) * cos(sas::math::degToRad(pitch));
         front.y = sin(sas::math::degToRad(pitch));
@@ -62,7 +61,6 @@ void sas::Window::processKeyboardInput(Camera &camera) noexcept
         camera.setViewDirection(front.normalized());
     }
 
-    // --- Rotate Right with Right Arrow or 'E' ---
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
     {
         yaw += rotationSpeed;

@@ -4,6 +4,7 @@
 
 namespace sas
 {
+
     class Camera
     {
     private:

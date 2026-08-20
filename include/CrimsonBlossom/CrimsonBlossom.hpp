@@ -6,7 +6,6 @@
 
 namespace sas
 {
-    //TODO: This needs to re-use allocations and stuff
     class CrimsonBlossom
     {
     public:
@@ -16,10 +15,10 @@ namespace sas
         AssetManager assetManager;
         std::vector<Scene> scenes;
 
-        // RenderObject createBuffer(const MeshComponent& component) const noexcept;
-
         CrimsonBlossom(Window &window, Camera& camera) noexcept
-            : vulkanLowLvl(window), sharedObjects(vulkanLowLvl), vkRenderer(window, camera, vulkanLowLvl, sharedObjects), assetManager(vulkanLowLvl, sharedObjects)
+            : vulkanLowLvl(window), sharedObjects(vulkanLowLvl), 
+              vkRenderer(window, camera, vulkanLowLvl, sharedObjects), 
+              assetManager(vulkanLowLvl, sharedObjects)
         {}
 
         void addScene(Scene newScene) noexcept
