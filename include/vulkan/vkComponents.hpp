@@ -1,15 +1,7 @@
 #pragma once
 
-#include "vkBridge.hpp"
-#include "vkShaderPipeline.hpp"
-#include "vkInputPipeline.hpp"
-#include "vkViewport.hpp"
-#include "vkRastarization.hpp"
-#include "vkPixelStyling.hpp"
-#include "vkPhysicalDevices.hpp"
-#include "vkCommand.hpp"
-#include "vkDescriptor.hpp"
-
+#include "vkVulkan.hpp"
+#include "vkAllocator.hpp"
 #include "Math.hpp"
 
 namespace sas
@@ -19,26 +11,7 @@ namespace sas
     {
         math::Mat4 mvp;
     };
-
-    struct VulkanSharedObjects
-    {
-        VulkanDescriptor shaderDescriptor;
-
-        VulkanSharedObjects(VulkanDevice &dev) noexcept
-            : shaderDescriptor(dev)
-        {
-        }
-    };
-
-    struct VulkanPipelineComponents
-    {
-        VulkanBridge *bridge;
-        VulkanInputPipeline *inputPipeline;
-        VulkanViewport *viewport;
-        VulkanRastarization *rastar;
-        VulkanPixelStyling *pixelStyling;
-        VulkanSharedObjects *sharedObjects;
-    };
+  
 
     class VulkanDevices
     {
@@ -59,6 +32,27 @@ namespace sas
         }
     };
 
+    struct VulkanSharedObjects
+    {
+        VulkanDescriptor shaderDescriptor;
+        VulkanAllocator allocator;
+
+        VulkanSharedObjects(VulkanDevices& dev ) noexcept
+            : shaderDescriptor(dev.vkDevice), allocator(dev.vk, dev.vkPhysical, dev.vkDevice)
+        {
+        }
+    };
+
+    struct VulkanPipelineComponents
+    {
+        VulkanBridge *bridge;
+        VulkanInputPipeline *inputPipeline;
+        VulkanViewport *viewport;
+        VulkanRastarization *rastar;
+        VulkanPixelStyling *pixelStyling;
+        VulkanSharedObjects *sharedObjects;
+    };
+
     struct RenderTexture
     {
         VkImage image;
@@ -77,11 +71,10 @@ namespace sas
 
     struct RenderObject
     {
-        RenderMesh* mesh;
+        RenderMesh *mesh;
         VulkanDynamicShader *shader;
 
         VkDescriptorSet descriptorSet;
-
     };
 
 } // namespace sas

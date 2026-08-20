@@ -19,7 +19,7 @@ namespace sas
         // RenderObject createBuffer(const MeshComponent& component) const noexcept;
 
         CrimsonBlossom(Window &window, Camera& camera) noexcept
-            : vulkanLowLvl(window), sharedObjects(vulkanLowLvl.vkDevice), vkRenderer(window, camera, vulkanLowLvl, sharedObjects), assetManager(vulkanLowLvl, sharedObjects)
+            : vulkanLowLvl(window), sharedObjects(vulkanLowLvl), vkRenderer(window, camera, vulkanLowLvl, sharedObjects), assetManager(vulkanLowLvl, sharedObjects)
         {}
 
         void addScene(Scene newScene) noexcept

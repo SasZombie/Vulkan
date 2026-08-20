@@ -49,6 +49,7 @@ SET(VULKAN_SOURCES
     vkDescriptor.cpp
     vkSampler.cpp
     vkRenderer.cpp
+    vkAllocator.cpp
 )
 
 SET(PHASE_1_SOURCES
