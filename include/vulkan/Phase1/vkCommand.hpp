@@ -50,6 +50,11 @@ namespace sas
             return currentFrame;
         }
 
+        [[nodiscard]] VkCommandPool getCommandPool() const noexcept
+        {
+            return commandPool;
+        }
+
         void advanceFrame() noexcept
         {
             currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
