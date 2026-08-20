@@ -56,16 +56,16 @@ namespace sas
     struct RenderTexture
     {
         VkImage image;
-        VkDeviceMemory memory;
         VkImageView view;
+        VmaAllocation allocation;
     };
 
     struct RenderMesh
     {
         VkBuffer vertexBuffer;
         VkBuffer indexBuffer;
-        VkDeviceMemory vertexBufferMemory;
-        VkDeviceMemory indexBufferMemory;
+        VmaAllocation vertexBufferMemory;
+        VmaAllocation indexBufferMemory;
         size_t indexCount;
     };
 

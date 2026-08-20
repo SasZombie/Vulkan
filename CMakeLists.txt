@@ -43,6 +43,7 @@ SET(ENGINE_SOURCES
 
 SET(GLOBAL_SOURCES
     Window.cpp
+    Logger.cpp
 )
 
 SET(VULKAN_SOURCES

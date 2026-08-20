@@ -6,6 +6,7 @@
 #include "Mesh.hpp"
 #include "vkComponents.hpp"
 #include "vkSampler.hpp"
+#include "Logger.hpp"
 
 namespace sas
 {
@@ -30,10 +31,13 @@ namespace sas
         std::unordered_map<std::string, RenderTexture> textureCache;
         std::unordered_map<std::pair<std::string, std::string>, VulkanDynamicShader, PairHash> shaderCache;
 
+        Logger* logger = BaseLogger::getLogger("Asset");
+
         Mesh getRawMesh(std::string_view path) const noexcept;
         uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
         void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory) const noexcept;
         RenderMesh createGpuMesh(const sas::Mesh &mesh) const noexcept;
+
 
     public:
         AssetManager(VulkanDevices &ctx, VulkanSharedObjects &obj) noexcept;
@@ -63,11 +67,11 @@ namespace sas
 
                 if (seccond.vertexBufferMemory)
                 {
-                    vkFreeMemory(vulkanCtx.vkDevice, seccond.vertexBufferMemory, nullptr);
+                    vmaFreeMemory(sharedObjs.allocator, seccond.vertexBufferMemory);
                 }
                 if (seccond.indexBufferMemory)
                 {
-                    vkFreeMemory(vulkanCtx.vkDevice, seccond.indexBufferMemory, nullptr);
+                    vmaFreeMemory(sharedObjs.allocator, seccond.indexBufferMemory);
                 }
             }
 
@@ -75,9 +79,9 @@ namespace sas
             {
                 const auto &seccond = elem.second;
 
-                if (seccond.memory)
+                if (seccond.allocation)
                 {
-                    vkFreeMemory(vulkanCtx.vkDevice, seccond.memory, nullptr);
+                    vmaFreeMemory(sharedObjs.allocator, seccond.allocation);;
                 }
                 if (seccond.image)
                 {

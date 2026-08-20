@@ -20,6 +20,7 @@
 
 #include "CrimsonBlossom.hpp"
 #include "AssetManager.hpp"
+#include "Logger.hpp"
 
 extern "C" const char *__lsan_default_suppressions();
 
@@ -41,8 +42,8 @@ int main()
         throw std::runtime_error("Vulkan is NOT supported on this system!");
     }
 
-    //Block just for destructor, to exit gracefully. Not that it would matter
     {
+        BaseLogger::addLogger("Asset");
         Window window(800, 600, "Meow");
         Camera camera{math::Vec3{0, 0, 3.f}};
 

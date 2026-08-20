@@ -16,6 +16,7 @@
 #include <fstream>
 #include "Math.hpp"
 
+
 static const std::string defaulTexturePath = "resources/textures/textureNotFound.bmp";
 
 static float _stringToFloat(const std::string &source) noexcept
@@ -250,6 +251,40 @@ static void _faceTokenize(const std::string &source, std::vector<std::string> &t
     return {vertices, indices};
 }
 
+static void copyBuffer(const sas::VulkanDevices &devs, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) noexcept
+{
+    VkCommandBufferAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandPool = devs.vkCommand.getCommandPool();
+    allocInfo.commandBufferCount = 1;
+
+    VkCommandBuffer commandBuffer;
+    vkAllocateCommandBuffers(devs.vkDevice, &allocInfo, &commandBuffer);
+
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+    VkBufferCopy copyRegion{};
+    copyRegion.size = size;
+    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+    vkEndCommandBuffer(commandBuffer);
+
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffer;
+
+    vkQueueSubmit(devs.vkDevice.getQueue(), 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(devs.vkDevice.getQueue());
+
+    vkFreeCommandBuffers(devs.vkDevice, devs.vkCommand.getCommandPool(), 1, &commandBuffer);
+}
+
 // TODO: add .gltf format support
 // TODO: Here some kind of dispatcher for diff formats :D and checkers for real files
 sas::Mesh sas::AssetManager::getRawMesh(std::string_view path) const noexcept
@@ -301,31 +336,44 @@ void sas::AssetManager::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage
 
 sas::RenderMesh sas::AssetManager::createGpuMesh(const sas::Mesh &mesh) const noexcept
 {
-    VkBuffer vertexBuffer;
-    VkDeviceMemory vertexBufferMemory;
-    VkBuffer indexBuffer;
-    VkDeviceMemory indexBufferMemory;
+    VkDeviceSize vertexSize = sizeof(mesh.vertices[0]) * mesh.vertices.size();
+    VkDeviceSize indexSize = sizeof(mesh.indices[0]) * mesh.indices.size();
 
-    // 1. Create & Copy Vertex Buffer
-    createBuffer(sizeof(mesh.vertices[0]) * mesh.vertices.size(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                 vertexBuffer, vertexBufferMemory);
+    VkBuffer stagingBuffer;
+    VmaAllocation stagingAllocation;
+    VmaAllocationInfo stagingAllocInfo;
 
-    void *data;
-    vkMapMemory(vulkanCtx.vkDevice, vertexBufferMemory, 0, sizeof(mesh.vertices[0]) * mesh.vertices.size(), 0, &data);
-    memcpy(data, mesh.vertices.data(), (size_t)sizeof(mesh.vertices[0]) * mesh.vertices.size());
-    vkUnmapMemory(vulkanCtx.vkDevice, vertexBufferMemory);
+    VkBuffer vertexBuffer, indexBuffer;
+    VmaAllocation vertexAllocation, indexAllocation;
 
-    // 2. Create & Copy Index Buffer
-    createBuffer(sizeof(mesh.indices[0]) * mesh.indices.size(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                 indexBuffer, indexBufferMemory);
+    sharedObjs.allocator.createBuffer(vertexSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                 VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+                                 stagingBuffer, stagingAllocation, &stagingAllocInfo);
 
-    vkMapMemory(vulkanCtx.vkDevice, indexBufferMemory, 0, sizeof(mesh.indices[0]) * mesh.indices.size(), 0, &data);
-    memcpy(data, mesh.indices.data(), (size_t)sizeof(mesh.indices[0]) * mesh.indices.size());
-    vkUnmapMemory(vulkanCtx.vkDevice, indexBufferMemory);
+    memcpy(stagingAllocInfo.pMappedData, mesh.vertices.data(), (size_t)vertexSize);
 
-    return {vertexBuffer, indexBuffer, vertexBufferMemory, indexBufferMemory, mesh.indices.size()};
+    sharedObjs.allocator.createBuffer(vertexSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                                 0, 
+                                 vertexBuffer, vertexAllocation);
+
+    copyBuffer(vulkanCtx, stagingBuffer, vertexBuffer, vertexSize);
+
+    vmaDestroyBuffer(sharedObjs.allocator, stagingBuffer, stagingAllocation);
+
+    sharedObjs.allocator.createBuffer(indexSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                 VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+                                 stagingBuffer, stagingAllocation, &stagingAllocInfo);
+
+    memcpy(stagingAllocInfo.pMappedData, mesh.indices.data(), (size_t)indexSize);
+
+    sharedObjs.allocator.createBuffer(indexSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                                 0,
+                                 indexBuffer, indexAllocation);
+
+    copyBuffer(vulkanCtx, stagingBuffer, indexBuffer, indexSize);
+    vmaDestroyBuffer(sharedObjs.allocator, stagingBuffer, stagingAllocation);
+
+    return {vertexBuffer, indexBuffer, vertexAllocation, indexAllocation, mesh.indices.size()};
 }
 
 sas::AssetManager::AssetManager(VulkanDevices &ctx, VulkanSharedObjects &shardObj) noexcept
@@ -364,47 +412,47 @@ sas::RenderMesh sas::AssetManager::loadMesh(const std::string &path) noexcept
 }
 
 sas::RenderTexture sas::AssetManager::loadTexture(const std::string &path) noexcept
-{
-
+{  
     if (textureCache.contains(path))
     {
         return textureCache.at(path);
     }
+    
+
 
     int texWidth, texHeight, texChannels;
     stbi_uc *pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
     if (!pixels)
     {
-        std::cerr << "[[Warning]]! Cannot load texture " << path << '\n';
+        logger->warn("Cannot load texture " + path);
+
         pixels = stbi_load("resources/textures/textureNotFound.bmp", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
     }
 
     if (!pixels)
     {
-        std::cerr << "[[Warning]]! Cannot load default texture. This might crash the program!\n";
+        logger->warn("Cannot load default texture. This might crash the program!");
         return {};
     }
 
-    std::cout << "Loading: texture " << path << '\n';
+    logger->log("Creating texture: " + path);
 
     VkDeviceSize imageSize = static_cast<VkDeviceSize>(texWidth) * texHeight * 4;
 
     VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                 stagingBuffer, stagingBufferMemory);
+    VmaAllocation stagingAllocation;
+    VmaAllocationInfo stagingAllocInfo;
 
-    void *data;
-    vkMapMemory(vulkanCtx.vkDevice, stagingBufferMemory, 0, imageSize, 0, &data);
-    memcpy(data, pixels, static_cast<size_t>(imageSize));
-    vkUnmapMemory(vulkanCtx.vkDevice, stagingBufferMemory);
+    sharedObjs.allocator.createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+                stagingBuffer, stagingAllocation, &stagingAllocInfo);
+
+    memcpy(stagingAllocInfo.pMappedData, pixels, static_cast<size_t>(imageSize));
     stbi_image_free(pixels);
 
-    // 2. Create GPU VkImage
     VkImage textureImage;
-    VkDeviceMemory textureImageMemory;
+    VmaAllocation textureImageAllocation;
 
     VkImageCreateInfo imageInfo{};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -421,18 +469,7 @@ sas::RenderTexture sas::AssetManager::loadTexture(const std::string &path) noexc
     imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    vkCreateImage(vulkanCtx.vkDevice, &imageInfo, nullptr, &textureImage);
-
-    VkMemoryRequirements memReqs;
-    vkGetImageMemoryRequirements(vulkanCtx.vkDevice, textureImage, &memReqs);
-
-    VkMemoryAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memReqs.size;
-    allocInfo.memoryTypeIndex = findMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-    vkAllocateMemory(vulkanCtx.vkDevice, &allocInfo, nullptr, &textureImageMemory);
-    vkBindImageMemory(vulkanCtx.vkDevice, textureImage, textureImageMemory, 0);
+    sharedObjs.allocator.createImage(imageInfo, VMA_MEMORY_USAGE_AUTO, textureImage, textureImageAllocation);
 
     VkCommandBuffer cmd = vulkanCtx.vkCommand.getCommandBuffer();
 
@@ -488,9 +525,8 @@ sas::RenderTexture sas::AssetManager::loadTexture(const std::string &path) noexc
 
     vkQueueSubmit(vulkanCtx.vkDevice.getQueue(), 1, &submitInfo, VK_NULL_HANDLE);
     vkQueueWaitIdle(vulkanCtx.vkDevice.getQueue());
-
-    vkDestroyBuffer(vulkanCtx.vkDevice, stagingBuffer, nullptr);
-    vkFreeMemory(vulkanCtx.vkDevice, stagingBufferMemory, nullptr);
+    
+    vmaDestroyBuffer(sharedObjs.allocator, stagingBuffer, stagingAllocation);
 
     VkImageViewCreateInfo viewInfo{};
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -507,7 +543,7 @@ sas::RenderTexture sas::AssetManager::loadTexture(const std::string &path) noexc
     RenderTexture t;
     t.image = textureImage;
     t.view = textureImageView;
-    t.memory = textureImageMemory;
+    t.allocation = textureImageAllocation;
 
     textureCache[path] = t;
 
@@ -518,7 +554,7 @@ sas::VulkanDynamicShader &sas::AssetManager::loadShader(const std::string &vert,
 {
     auto key = std::make_pair(vert, frag);
 
-    //Starting from 1 so ID = 0 means invalid
+    // Starting from 1 so ID = 0 means invalid
     static size_t shaderID = 1;
 
     auto [it, inserted] = shaderCache.try_emplace(
@@ -535,9 +571,7 @@ sas::VulkanDynamicShader &sas::AssetManager::loadShader(const std::string &vert,
 
 void sas::AssetManager::addTexture(RenderObject &objWithMesh, const std::string &path) noexcept
 {
-
     const auto &texture = loadTexture(path);
-
     addTexture(objWithMesh, texture);
 }
 

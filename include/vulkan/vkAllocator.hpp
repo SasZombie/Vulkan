@@ -1,6 +1,12 @@
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wundef"
+
 #include "vk_mem_alloc.h"
+
+#pragma GCC diagnostic pop
+
 #include "vkVulkan.hpp"
 
 namespace sas
@@ -12,7 +18,8 @@ namespace sas
 
     public:
         VulkanAllocator(const VulkanInstanceWrapper &instance, const VulkanPhysicalDevice &physicalDev, const VulkanDevice &device);
-
+        void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VmaAllocationCreateFlags vmaFlags, VkBuffer& buffer, VmaAllocation& allocation, VmaAllocationInfo* allocInfo = nullptr) const noexcept;
+        void createImage(const VkImageCreateInfo& imageInfo, VmaMemoryUsage usage, VkImage& image, VmaAllocation& allocation) const noexcept;
         VulkanAllocator(const VulkanAllocator &) = delete;
         VulkanAllocator &operator=(const VulkanAllocator &) = delete;
 

@@ -51,7 +51,7 @@ static std::string getFormattedTimestamp() noexcept
 {
     auto now = std::chrono::system_clock::now();
 
-    return std::format("{:%H:%M:%S} ", std::chrono::floor<std::chrono::milliseconds>(now));
+    return std::format("[{:%H:%M:%S}] ", std::chrono::floor<std::chrono::milliseconds>(now));
 }
 
 
@@ -64,7 +64,7 @@ void sas::Logger::log(std::string_view message) noexcept
             return;
         }
 
-        const std::string preMessageTransform = settings.settings.timeStamp ? getFormattedTimestamp() : logPreMessage;
+        const std::string preMessageTransform = settings.settings.timeStamp ? getFormattedTimestamp() + logPreMessage : logPreMessage;
 
         for (auto logerSink : settings.loggerSinks)
         {
@@ -82,7 +82,7 @@ void sas::Logger::warn(std::string_view message) noexcept
             return;
         }
 
-        const std::string preMessageTransform = settings.settings.timeStamp ? getFormattedTimestamp() : warningPreMessage;
+        const std::string preMessageTransform = settings.settings.timeStamp ? getFormattedTimestamp() + logPreMessage : warningPreMessage;
 
 
         for (auto logerSink : settings.loggerSinks)
@@ -100,7 +100,7 @@ void sas::Logger::error(std::string_view message) noexcept
         {
             return;
         }
-        const std::string preMessageTransform = settings.settings.timeStamp ? getFormattedTimestamp() : errorPreMessage;
+        const std::string preMessageTransform = settings.settings.timeStamp ? getFormattedTimestamp() + logPreMessage : errorPreMessage;
 
         for (auto logerSink : settings.loggerSinks)
         {
