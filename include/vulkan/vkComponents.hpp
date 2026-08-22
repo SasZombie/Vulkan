@@ -2,6 +2,7 @@
 
 #include "vkVulkan.hpp"
 #include "vkAllocator.hpp"
+#include "vkSampler.hpp"
 #include "Math.hpp"
 
 namespace sas
@@ -34,11 +35,12 @@ namespace sas
 
     struct VulkanSharedObjects
     {
-        VulkanDescriptor shaderDescriptor;
+        VulkanDescriptor vulkanDescriptor;
+        VulkanSampler sampler;
         VulkanAllocator allocator;
 
         VulkanSharedObjects(VulkanDevices& dev ) noexcept
-            : shaderDescriptor(dev.vkDevice), allocator(dev.vk, dev.vkPhysical, dev.vkDevice)
+            : vulkanDescriptor(dev.vkDevice), sampler(dev.vkDevice), allocator(dev.vk, dev.vkPhysical, dev.vkDevice)
         {
         }
     };
@@ -51,30 +53,6 @@ namespace sas
         VulkanRastarization *rastar;
         VulkanPixelStyling *pixelStyling;
         VulkanSharedObjects *sharedObjects;
-    };
-
-    struct RenderTexture
-    {
-        VkImage image;
-        VkImageView view;
-        VmaAllocation allocation;
-    };
-
-    struct RenderMesh
-    {
-        VkBuffer vertexBuffer;
-        VkBuffer indexBuffer;
-        VmaAllocation vertexBufferMemory;
-        VmaAllocation indexBufferMemory;
-        size_t indexCount;
-    };
-
-    struct RenderObject
-    {
-        RenderMesh *mesh;
-        VulkanDynamicShader *shader;
-
-        VkDescriptorSet descriptorSet;
     };
 
 } // namespace sas

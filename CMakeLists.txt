@@ -38,7 +38,7 @@ SET(ENGINE_SOURCES
     SceneNode.cpp
     CrimsonBlossom.cpp
     AssetManager.cpp
-    Mesh.cpp
+    Material.cpp
 )
 
 SET(GLOBAL_SOURCES

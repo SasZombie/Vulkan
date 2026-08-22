@@ -1,8 +1,13 @@
 #include "vkDescriptor.hpp"
 
+//TODO: There needs to be a way to re-generate this descriptor
+//Atm I hardcoded 1000 textures and 1000 descriptors
+//But it should be dynamic
 sas::VulkanDescriptor::VulkanDescriptor(VulkanDevice &dev) noexcept
     : device(dev)
 {
+    constexpr size_t hardcodedVal = 1000;
+
     VkDescriptorSetLayoutBinding samplerLayoutBinding{};
     samplerLayoutBinding.binding = 0;
     samplerLayoutBinding.descriptorCount = 1;
@@ -16,9 +21,14 @@ sas::VulkanDescriptor::VulkanDescriptor(VulkanDevice &dev) noexcept
 
     vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout);
 
-    VkDescriptorPoolSize poolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1};
-    VkDescriptorPoolCreateInfo poolInfo{
-        VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO, nullptr, 0, 1, 1, &poolSize};
+    VkDescriptorPoolSize poolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, hardcodedVal};
+    VkDescriptorPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.pNext = nullptr;
+    poolInfo.flags = 0;
+    poolInfo.maxSets = hardcodedVal;
+    poolInfo.poolSizeCount = 1;
+    poolInfo.pPoolSizes = &poolSize;
 
     vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool);
 }

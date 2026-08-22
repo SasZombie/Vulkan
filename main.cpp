@@ -44,6 +44,7 @@ int main()
 
     {
         BaseLogger::addLogger("Asset");
+        BaseLogger::addLogger("Material");
         Window window(800, 600, "Meow");
         Camera camera{math::Vec3{0, 0, 3.f}};
 
@@ -51,20 +52,28 @@ int main()
 
         Scene firstScene;
 
-        uint32_t firstEntity = firstScene.sceneRegistry.createEntity();
+        uint32_t sphereEntity = firstScene.sceneRegistry.createEntity();
+        uint32_t cubeEntity = firstScene.sceneRegistry.createEntity();
 
-        RenderMesh renderMesh = engine.assetManager.loadMesh("resources/models/sphere.obj");
-        RenderTexture renderTexture = engine.assetManager.loadTexture("resources/textures/goldTexture.bmp");
-        VulkanDynamicShader& shader = engine.assetManager.loadShader("shaders/spv/vert.spv", "shaders/spv/frag.spv");
-        
-        RenderObject renObj;
+        RenderMesh spereMesh = engine.assetManager.loadMesh("resources/models/sphere.obj");
+        RenderMesh cubeMesh = engine.assetManager.loadMesh("resources/models/Cube.obj");
 
-        engine.assetManager.addTexture(renObj, renderTexture);
+        RenderTexture renderTexture = engine.assetManager.materialManager.loadTexture("resources/textures/goldTexture.bmp");
+        VulkanDynamicShader &shader = engine.assetManager.materialManager.loadShader("shaders/spv/vert.spv", "shaders/spv/frag.spv");
 
-        renObj.mesh = &renderMesh;
-        renObj.shader = &shader;
+        Material* firstMaterial = engine.assetManager.materialManager.addMaterial("Golden Material", shader, renderTexture);
 
-        firstScene.sceneRegistry.addComponent(firstEntity, renObj);
+        RenderObject ShpereObj;
+        RenderObject CubeObj;
+
+        ShpereObj.mesh = &spereMesh;
+        CubeObj.mesh = &cubeMesh;
+
+        ShpereObj.material = firstMaterial;
+        CubeObj.material = firstMaterial;
+
+        firstScene.sceneRegistry.addComponent(sphereEntity, ShpereObj);
+        firstScene.sceneRegistry.addComponent(cubeEntity, CubeObj);
 
         engine.addScene(firstScene);
 
@@ -77,7 +86,7 @@ int main()
     }
 
     glfwTerminate();
-    std::cout << "\n==============================\nFinished app\n==============================\n";
+    BaseLogger::log("==============================\nFinished app\n==============================");
 }
 
 #if defined(__has_feature)

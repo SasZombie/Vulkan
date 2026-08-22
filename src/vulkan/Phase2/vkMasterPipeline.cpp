@@ -16,7 +16,7 @@ sas::VulkanMasterPipeline::VulkanMasterPipeline(VulkanDevice &vulkanDevice, cons
 
     pipelineLayoutInfo.setLayoutCount = 1;
 
-    const auto &layout = components.sharedObjects->shaderDescriptor.getDescriptorLayout();
+    const auto &layout = components.sharedObjects->vulkanDescriptor.getDescriptorLayout();
 
     pipelineLayoutInfo.pSetLayouts = &layout;
 

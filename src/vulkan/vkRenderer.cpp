@@ -32,10 +32,10 @@ void sas::VulkanRenderer::drawFrame(const std::vector<RenderObject> &objectsToRe
         setUpRaster(renderObj);
         setUpViewPort(renderObj);
 
-        if (renderObj.shader->getId() != prevId)
+        if (renderObj.material->shader->getId() != prevId)
         {
             setUpShader(renderObj);
-            prevId = renderObj.shader->getId();
+            prevId = renderObj.material->shader->getId();
         }
 
         drawCallRecorder(renderObj);
@@ -124,7 +124,7 @@ void sas::VulkanRenderer::dynamicRendering(uint32_t imageIndex) const noexcept
 void sas::VulkanRenderer::drawCallRecorder(const RenderObject &renderObj) const noexcept
 {
     const auto &comandBuff = vulkanLowLvl.vkCommand.getCommandBuffer();
-    const auto &descriptor = renderObj.descriptorSet;
+    const auto &descriptor = renderObj.material->descriptorSet;
 
     vkCmdSetDepthBiasEnable(comandBuff, VK_FALSE);
     vkCmdSetPrimitiveTopologyEXT(vulkanLowLvl.vkCommand.getCommandBuffer(), inputPipeline.getInputAssembly().topology);
@@ -253,7 +253,7 @@ void sas::VulkanRenderer::setUpShader(const RenderObject &renderObj) const noexc
     vkCmdSetVertexInputEXT(comandBuff, 1, &bindingDesc, 4, attrDesc);
 
     VkShaderStageFlagBits stages[] = {VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT};
-    const auto &[vert, frag] = renderObj.shader->getShaderModule();
+    const auto &[vert, frag] = renderObj.material->shader->getShaderModule();
 
     VkShaderEXT shaders[] = {vert, frag};
 

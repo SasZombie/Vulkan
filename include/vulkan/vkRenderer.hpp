@@ -17,6 +17,7 @@
 
 #include "vkMasterPipeline.hpp"
 #include "Camera.hpp"
+#include "RenderObject.hpp"
 
 namespace sas
 {
