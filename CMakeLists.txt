@@ -42,6 +42,10 @@ SET(ENGINE_SOURCES
     EngineUi.cpp
 )
 
+SET(RENDERER_SOURCES
+    vkRenderer.cpp
+)
+
 SET(GLOBAL_SOURCES
     Window.cpp
     Logger.cpp
@@ -50,7 +54,6 @@ SET(GLOBAL_SOURCES
 SET(VULKAN_SOURCES
     vkDescriptor.cpp
     vkSampler.cpp
-    vkRenderer.cpp
     vkAllocator.cpp
 )
 
@@ -76,6 +79,7 @@ list(TRANSFORM PHASE_1_SOURCES PREPEND "src/vulkan/Phase1/")
 list(TRANSFORM PHASE_2_SOURCES PREPEND "src/vulkan/Phase2/")
 list(TRANSFORM ENGINE_SOURCES PREPEND "src/vulkan/CrimsonBlossom/")
 list(TRANSFORM VULKAN_SOURCES PREPEND "src/vulkan/")
+list(TRANSFORM RENDERER_SOURCES PREPEND "src/vulkan/Renderer/")
 
 
 include(FetchContent)
@@ -111,7 +115,7 @@ target_include_directories(dearImGui PUBLIC
     ${dearimgui_SOURCE_DIR}/backends
 )
 
-add_executable(main main.cpp ${GLOBAL_SOURCES} ${PHASE_1_SOURCES} ${PHASE_2_SOURCES} ${VULKAN_SOURCES} ${ENGINE_SOURCES})
+add_executable(main main.cpp ${GLOBAL_SOURCES} ${PHASE_1_SOURCES} ${PHASE_2_SOURCES} ${VULKAN_SOURCES} ${ENGINE_SOURCES} ${RENDERER_SOURCES})
 
 target_include_directories(main PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
