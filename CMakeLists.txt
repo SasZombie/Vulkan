@@ -121,6 +121,7 @@ target_include_directories(main PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/include/CrimsonBlossom
     ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/Renderer
     ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/Phase1
     ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/Phase2
     ${CMAKE_CURRENT_SOURCE_DIR}/deps/
