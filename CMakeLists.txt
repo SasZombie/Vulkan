@@ -39,6 +39,7 @@ SET(ENGINE_SOURCES
     CrimsonBlossom.cpp
     AssetManager.cpp
     Material.cpp
+    EngineUi.cpp
 )
 
 SET(GLOBAL_SOURCES
@@ -70,15 +71,47 @@ SET(PHASE_2_SOURCES
     vkMasterPipeline.cpp
 )
 
-list(TRANSFORM GLOBAL_SOURCES  PREPEND "src/")
+list(TRANSFORM GLOBAL_SOURCES PREPEND "src/")
 list(TRANSFORM PHASE_1_SOURCES PREPEND "src/vulkan/Phase1/")
 list(TRANSFORM PHASE_2_SOURCES PREPEND "src/vulkan/Phase2/")
-list(TRANSFORM ENGINE_SOURCES  PREPEND "src/vulkan/CrimsonBlossom/")
-list(TRANSFORM VULKAN_SOURCES  PREPEND "src/vulkan/")
+list(TRANSFORM ENGINE_SOURCES PREPEND "src/vulkan/CrimsonBlossom/")
+list(TRANSFORM VULKAN_SOURCES PREPEND "src/vulkan/")
+
+
+include(FetchContent)
+FetchContent_Declare(
+    dearImGui
+    GIT_REPOSITORY https://github.com/ocornut/imgui.git
+    GIT_TAG v1.91.8
+    GIT_SHALLOW TRUE
+    )
+
+
+FetchContent_Declare(
+    physicsEngine
+    GIT_REPOSITORY https://github.com/SasZombie/Engine.git
+    GIT_TAG main
+    GIT_SHALLOW TRUE
+    )
+
+FetchContent_MakeAvailable(dearImGui physicsEngine)
+
+add_library(dearImGui STATIC
+    ${dearimgui_SOURCE_DIR}/imgui.cpp
+    ${dearimgui_SOURCE_DIR}/imgui_demo.cpp
+    ${dearimgui_SOURCE_DIR}/imgui_draw.cpp
+    ${dearimgui_SOURCE_DIR}/imgui_tables.cpp
+    ${dearimgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${dearimgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+    ${dearimgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp
+)
+
+target_include_directories(dearImGui PUBLIC
+    ${dearimgui_SOURCE_DIR}
+    ${dearimgui_SOURCE_DIR}/backends
+)
 
 add_executable(main main.cpp ${GLOBAL_SOURCES} ${PHASE_1_SOURCES} ${PHASE_2_SOURCES} ${VULKAN_SOURCES} ${ENGINE_SOURCES})
-add_subdirectory(deps/Engine)
-
 
 target_include_directories(main PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -86,9 +119,7 @@ target_include_directories(main PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan
     ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/Phase1
     ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/Phase2
-    ${CMAKE_CURRENT_SOURCE_DIR}/deps/Engine/lib/include
     ${CMAKE_CURRENT_SOURCE_DIR}/deps/
-    
 )
 
 target_link_libraries(main PRIVATE
@@ -97,4 +128,5 @@ target_link_libraries(main PRIVATE
     sas_physics
     project_warnings_vulkan
     project_sanitizers_vulkan
+    dearImGui
 )

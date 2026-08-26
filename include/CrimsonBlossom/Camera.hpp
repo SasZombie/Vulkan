@@ -28,11 +28,10 @@ namespace sas
 
         void move(const math::Vec3& movement) noexcept;
 
-        math::Mat4 getViewProjection() const noexcept;
-        math::Mat4 getProjection() const noexcept;
+        [[nodiscard]]math::Mat4 getViewProjection() const noexcept;
+        [[nodiscard]]math::Mat4 getProjection() const noexcept;
 
         void setViewDirection(const math::Vec3& viewDir) noexcept;
-        [[nodiscard]]math::Mat4 getMVP() const noexcept;
     };
 
 } // namespace sas

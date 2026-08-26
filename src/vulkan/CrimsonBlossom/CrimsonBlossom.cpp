@@ -1,6 +1,7 @@
 #include "CrimsonBlossom.hpp"
 #include "Transform.hpp"
 
+
 void sas::CrimsonBlossom::update() noexcept
 {
 

@@ -1,4 +1,8 @@
 #include "vkRenderer.hpp"
+#include <imgui.h>
+#include <backends/imgui_impl_vulkan.h>
+#include <backends/imgui_impl_glfw.h>
+
 #include "Mesh.hpp"
 
 sas::VulkanRenderer::VulkanRenderer(Window &nwindow, Camera &ncamera, VulkanDevices &nvulkanLowLvl, VulkanSharedObjects &sharedObj)
@@ -30,7 +34,7 @@ void sas::VulkanRenderer::drawFrame(const std::vector<DrawingComponents> &object
 
     for (const auto &combinedItem : objectsToRender)
     {
-        auto renderObj = *combinedItem.get<RenderObject>();
+        const auto& renderObj = *combinedItem.get<RenderObject>();
         // auto transform = *combinedItem.get<ObjectTransform3D>();
 
         setUpRaster(renderObj);
@@ -44,6 +48,8 @@ void sas::VulkanRenderer::drawFrame(const std::vector<DrawingComponents> &object
 
         drawCallRecorder(combinedItem);
     }
+
+    renderEditorUi();
 
     vkCmdEndRendering(vulkanLowLvl.vkCommand.getCommandBuffer());
 
@@ -305,4 +311,22 @@ void sas::VulkanRenderer::setUpViewPort(const RenderObject &renderObj) const noe
 
     vkCmdSetViewportWithCount(comandBuff, 1, &viewPort.getViewport());
     vkCmdSetScissorWithCount(comandBuff, 1, &viewPort.getScissors());
+}
+
+
+void sas::VulkanRenderer::renderEditorUi() const noexcept
+{
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    // 2. Build your Editor UI
+    ImGui::Begin("Inspector");
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    ImGui::End();
+
+    // 3. Render ImGui draw lists into Vulkan command buffer
+    ImGui::Render();
+    ImDrawData* drawData = ImGui::GetDrawData();
+    ImGui_ImplVulkan_RenderDrawData(drawData, vulkanLowLvl.vkCommand.getCommandBuffer());
 }

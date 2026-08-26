@@ -68,7 +68,7 @@ namespace sas
             return std::make_pair(size.x, size.y);
         }
 
-        operator GLFWwindow *() noexcept
+        operator GLFWwindow *() const noexcept
         {
             return window;
         }

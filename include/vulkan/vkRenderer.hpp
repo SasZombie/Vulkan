@@ -32,6 +32,10 @@ namespace sas
 
     class VulkanRenderer
     {
+    
+    private:
+        void renderEditorUi() const noexcept;
+
     public:
         VulkanRenderer(Window &window, Camera& camera, VulkanDevices& vulkanLowLvl, VulkanSharedObjects& sharedObjs);
 

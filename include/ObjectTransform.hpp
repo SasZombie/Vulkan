@@ -6,8 +6,8 @@ namespace sas
 
     struct ObjectTransform2D
     {
-        float rotation = 0;
         math::Vec2 position;
+        math::Vec2 rotation;
         math::Vec2 scale{1.f, 1.f};
 
         ObjectTransform2D() noexcept = default;
@@ -26,8 +26,8 @@ namespace sas
 
     struct ObjectTransform3D
     {
-        math::Vec3 rotation;
         math::Vec3 position;
+        math::Vec3 rotation;
         math::Vec3 scale{1.f, 1.f, 1.f};
 
         ObjectTransform3D() noexcept = default;

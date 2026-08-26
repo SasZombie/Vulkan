@@ -22,6 +22,8 @@
 #include "AssetManager.hpp"
 #include "Logger.hpp"
 
+#include "PhysicsWorld.hpp"
+
 extern "C" const char *__lsan_default_suppressions();
 
 using namespace sas;
@@ -88,8 +90,8 @@ int main()
         firstScene.sceneRegistry.addComponent(cubeEntity, CubeObj);
         firstScene.sceneRegistry.addComponent(cubeEntity, transform);
 
-        firstScene.sceneRegistry.addComponent(skybox, skyboxTransform);
-        firstScene.sceneRegistry.addComponent(skybox, SkyBoxObj);
+        // firstScene.sceneRegistry.addComponent(skybox, skyboxTransform);
+        // firstScene.sceneRegistry.addComponent(skybox, SkyBoxObj);
 
         engine.addScene(firstScene);
 
