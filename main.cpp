@@ -65,9 +65,9 @@ int main()
         Material* firstMaterial = engine.assetManager.materialManager.addMaterial("Gold", shader, renderTexture);
 
         ObjectTransform3D transform{{4.f, 0.f, 0.f}};
-        ObjectTransform3D skyboxTransform{};
+        ObjectTransform3D skyboxTransform{{10, 0.f, 10}};
 
-        skyboxTransform.scale = {100, 100, 100};
+        skyboxTransform.scale = math::Vec3{20.f};
 
         RenderObject ShpereObj;
         RenderObject CubeObj;
@@ -75,7 +75,7 @@ int main()
 
         ShpereObj.mesh = &spereMesh;
         CubeObj.mesh = &cubeMesh;
-        SkyBoxObj.mesh = &spereMesh;
+        SkyBoxObj.mesh = &cubeMesh;
 
 
         ShpereObj.material = firstMaterial;
@@ -88,8 +88,8 @@ int main()
         firstScene.sceneRegistry.addComponent(cubeEntity, CubeObj);
         firstScene.sceneRegistry.addComponent(cubeEntity, transform);
 
-        // firstScene.sceneRegistry.addComponent(skybox, skyboxTransform);
-        // firstScene.sceneRegistry.addComponent(skybox, SkyBoxObj);
+        firstScene.sceneRegistry.addComponent(skybox, skyboxTransform);
+        firstScene.sceneRegistry.addComponent(skybox, SkyBoxObj);
 
         engine.addScene(firstScene);
 

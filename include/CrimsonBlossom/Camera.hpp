@@ -12,6 +12,7 @@ namespace sas
         math::Vec3 viewDirection;
         math::Vec3 upVector;
         math::Vec3 rightVector;
+        math::Vec3 worldUp{0.f, 1.f, 0.f};
 
     public:
         Camera(const math::Vec3 &cameraPosition) noexcept

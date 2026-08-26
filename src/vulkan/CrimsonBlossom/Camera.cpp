@@ -2,13 +2,18 @@
 
 void sas::Camera::move(const math::Vec3 &movement) noexcept
 {
-    position = position + movement;
+    const float speed = 0.5f;
+    position = position + (viewDirection * movement.z * speed);
+    position = position + (rightVector * movement.x * speed);
+    position = position + (worldUp * movement.y * speed);
 }
 
 void sas::Camera::setViewDirection(const math::Vec3 &viewDir) noexcept
 {
-    viewDirection = viewDir;
-    rightVector = viewDir * upVector;
+    viewDirection = viewDir.normalized();
+
+    rightVector = (viewDirection * worldUp).normalized();
+    upVector = (rightVector * viewDirection).normalized();
 }
 
 sas::math::Mat4 sas::Camera::getViewProjection() const noexcept

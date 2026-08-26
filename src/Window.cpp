@@ -20,7 +20,7 @@ float yaw = -90.f, pitch = 0.f;
 
 double lastX = 400, lastY = 300;
 
-//This is the "Debug Camera basically"
+// This is the "Debug Camera basically"
 void sas::Window::processKeyboardInput(Camera &camera) noexcept
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -30,12 +30,12 @@ void sas::Window::processKeyboardInput(Camera &camera) noexcept
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
-        camera.move({0, 0, -1});
+        camera.move({0, 0, 1});
     }
 
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     {
-        camera.move({0, 0, 1});
+        camera.move({0, 0, -1});
     }
 
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
@@ -58,32 +58,39 @@ void sas::Window::processKeyboardInput(Camera &camera) noexcept
         camera.move({0, 1, 0});
     }
 
-    float rotationSpeed = 0.4f;
+    float rotationSpeed = 0.8f;
+    bool rotationChanged = false;
+
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
     {
-        yaw -= rotationSpeed; // Subtracting yaw turns the camera left
-
-        sas::math::Vec3 front;
-        front.x = cos(sas::math::degToRad(yaw)) * cos(sas::math::degToRad(pitch));
-        front.y = sin(sas::math::degToRad(pitch));
-        front.z = sin(sas::math::degToRad(yaw)) * cos(sas::math::degToRad(pitch));
-
-        camera.setViewDirection(front.normalized());
+        yaw -= rotationSpeed;
+        rotationChanged = true;
     }
-
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
     {
         yaw += rotationSpeed;
+        rotationChanged = true;
+    }
+
+    if (rotationChanged)
+    {
+        // Clamp pitch to prevent screen flipping (if adjusting pitch with Up/Down)
+        if (pitch > 89.0f)
+            pitch = 89.0f;
+        if (pitch < -89.0f)
+            pitch = -89.0f;
+
+        const float yawRad = sas::math::degToRad(yaw);
+        const float pitchRad = sas::math::degToRad(pitch);
 
         sas::math::Vec3 front;
-        front.x = cos(sas::math::degToRad(yaw)) * cos(sas::math::degToRad(pitch));
-        front.y = sin(sas::math::degToRad(pitch));
-        front.z = sin(sas::math::degToRad(yaw)) * cos(sas::math::degToRad(pitch));
+        front.x = std::cos(yawRad) * std::cos(pitchRad);
+        front.y = std::sin(pitchRad);
+        front.z = std::sin(yawRad) * std::cos(pitchRad);
 
-        camera.setViewDirection(front.normalized());
+        camera.setViewDirection(front);
     }
 }
-
 
 void mouse_callback(GLFWwindow *glWindow, double xpos, double ypos) noexcept
 {
