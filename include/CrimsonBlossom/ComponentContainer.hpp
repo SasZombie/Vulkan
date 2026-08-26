@@ -8,6 +8,7 @@ namespace sas
 
     constexpr uint32_t nullIndex = std::numeric_limits<uint32_t>::max();
 
+    
     struct IComponent
     {
         virtual ~IComponent() noexcept = default;

@@ -19,11 +19,17 @@
 #include "Camera.hpp"
 #include "RenderObject.hpp"
 
+#include "EntityRegistry.hpp"
+#include "ObjectTransform.hpp"
+
+
 namespace sas
 {
 
     //TODO: Renderer should have multiple sub-renderers to take advantage
     //Of how vulkan works
+    using DrawingComponents = sas::Combined<sas::RenderObject, sas::ObjectTransform3D>;
+
     class VulkanRenderer
     {
     public:
@@ -43,7 +49,7 @@ namespace sas
             }
         }
 
-        void drawFrame(const std::vector<RenderObject>& objectsToRender) noexcept;
+        void drawFrame(const std::vector<DrawingComponents>& objectsToRender) noexcept;
 
     public:
         Window &window;
@@ -67,7 +73,7 @@ namespace sas
 
         void dynamicRendering(uint32_t imageIndex) const noexcept;
 
-        void drawCallRecorder(const RenderObject& renderObj) const noexcept;
+        void drawCallRecorder(const DrawingComponents& component) const noexcept;
 
         void imageLayoutTransitionPresent(VkImageMemoryBarrier2 &barrierToRender) const noexcept;
 

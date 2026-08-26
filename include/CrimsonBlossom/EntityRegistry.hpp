@@ -10,6 +10,20 @@
 
 namespace sas
 {
+
+    template <typename... Types>
+    struct Combined
+    {
+        uint32_t entity;
+        std::tuple<Types *...> components;
+
+        template <typename T>
+        T *get() { return std::get<T *>(components); }
+
+        template <typename T>
+        const T *get() const { return std::get<T *>(components); }
+    };
+
     class EntityRegistry
     {
     private:
@@ -89,6 +103,34 @@ namespace sas
         ComponentContainer<T> *getComponents() noexcept
         {
             return getComponentContainer<T>();
+        }
+
+        template <typename Primary, typename... Rest>
+        std::vector<Combined<Primary, Rest...>> getCombined() noexcept
+        {
+            std::vector<Combined<Primary, Rest...>> result;
+            auto *primary = getComponentContainer<Primary>();
+
+            const auto &entities = primary->getEntities();
+            auto &data = primary->getData();
+
+            for (size_t i = 0; i < entities.size(); ++i)
+            {
+                uint32_t entityId = entities[i];
+                // Check that all secondary containers also have this entity
+
+                bool hasAll = (... && (getComponentContainer<Rest>()->get(entityId) != nullptr));
+
+                if (hasAll)
+                {
+                    result.push_back({entityId,
+                                      std::make_tuple(
+                                          &data[i],                                       
+                                          getComponentContainer<Rest>()->get(entityId)... 
+                                          )});
+                }
+            }
+            return result;
         }
     };
 

@@ -54,6 +54,7 @@ int main()
 
         uint32_t sphereEntity = firstScene.sceneRegistry.createEntity();
         uint32_t cubeEntity = firstScene.sceneRegistry.createEntity();
+        uint32_t skybox = firstScene.sceneRegistry.createEntity();
 
         RenderMesh spereMesh = engine.assetManager.loadMesh("resources/models/sphere.obj");
         RenderMesh cubeMesh = engine.assetManager.loadMesh("resources/models/Cube.obj");
@@ -61,19 +62,34 @@ int main()
         RenderTexture renderTexture = engine.assetManager.materialManager.loadTexture("resources/textures/goldTexture.bmp");
         VulkanDynamicShader &shader = engine.assetManager.materialManager.loadShader("shaders/spv/vert.spv", "shaders/spv/frag.spv");
 
-        Material* firstMaterial = engine.assetManager.materialManager.addMaterial("Golden Material", shader, renderTexture);
+        Material* firstMaterial = engine.assetManager.materialManager.addMaterial("Gold", shader, renderTexture);
+
+        ObjectTransform3D transform{{4.f, 0.f, 0.f}};
+        ObjectTransform3D skyboxTransform{};
+
+        skyboxTransform.scale = {100, 100, 100};
 
         RenderObject ShpereObj;
         RenderObject CubeObj;
+        RenderObject SkyBoxObj;
 
         ShpereObj.mesh = &spereMesh;
         CubeObj.mesh = &cubeMesh;
+        SkyBoxObj.mesh = &spereMesh;
+
 
         ShpereObj.material = firstMaterial;
         CubeObj.material = firstMaterial;
+        SkyBoxObj.material = firstMaterial;
 
         firstScene.sceneRegistry.addComponent(sphereEntity, ShpereObj);
+        firstScene.sceneRegistry.addComponent(sphereEntity, ObjectTransform3D{});
+
         firstScene.sceneRegistry.addComponent(cubeEntity, CubeObj);
+        firstScene.sceneRegistry.addComponent(cubeEntity, transform);
+
+        // firstScene.sceneRegistry.addComponent(skybox, skyboxTransform);
+        // firstScene.sceneRegistry.addComponent(skybox, SkyBoxObj);
 
         engine.addScene(firstScene);
 

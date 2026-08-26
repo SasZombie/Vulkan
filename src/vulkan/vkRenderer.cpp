@@ -1,5 +1,6 @@
 #include "vkRenderer.hpp"
 #include "Mesh.hpp"
+
 sas::VulkanRenderer::VulkanRenderer(Window &nwindow, Camera &ncamera, VulkanDevices &nvulkanLowLvl, VulkanSharedObjects &sharedObj)
     : window(nwindow),
       camera(ncamera),
@@ -11,7 +12,7 @@ sas::VulkanRenderer::VulkanRenderer(Window &nwindow, Camera &ncamera, VulkanDevi
 {
 }
 
-void sas::VulkanRenderer::drawFrame(const std::vector<RenderObject> &objectsToRender) noexcept
+void sas::VulkanRenderer::drawFrame(const std::vector<DrawingComponents> &objectsToRender) noexcept
 {
     preFrame();
 
@@ -27,8 +28,11 @@ void sas::VulkanRenderer::drawFrame(const std::vector<RenderObject> &objectsToRe
 
     uint32_t prevId = 0;
 
-    for (const auto &renderObj : objectsToRender)
+    for (const auto &combinedItem : objectsToRender)
     {
+        auto renderObj = *combinedItem.get<RenderObject>();
+        // auto transform = *combinedItem.get<ObjectTransform3D>();
+
         setUpRaster(renderObj);
         setUpViewPort(renderObj);
 
@@ -38,7 +42,7 @@ void sas::VulkanRenderer::drawFrame(const std::vector<RenderObject> &objectsToRe
             prevId = renderObj.material->shader->getId();
         }
 
-        drawCallRecorder(renderObj);
+        drawCallRecorder(combinedItem);
     }
 
     vkCmdEndRendering(vulkanLowLvl.vkCommand.getCommandBuffer());
@@ -121,8 +125,10 @@ void sas::VulkanRenderer::dynamicRendering(uint32_t imageIndex) const noexcept
     vkCmdBeginRendering(vulkanLowLvl.vkCommand.getCommandBuffer(), &renderingInfo);
 }
 
-void sas::VulkanRenderer::drawCallRecorder(const RenderObject &renderObj) const noexcept
+void sas::VulkanRenderer::drawCallRecorder(const DrawingComponents &component) const noexcept
 {
+    auto renderObj = *component.get<RenderObject>();
+
     const auto &comandBuff = vulkanLowLvl.vkCommand.getCommandBuffer();
     const auto &descriptor = renderObj.material->descriptorSet;
 
@@ -141,7 +147,14 @@ void sas::VulkanRenderer::drawCallRecorder(const RenderObject &renderObj) const 
         1,
         &descriptor,
         0, nullptr);
-    PushConstants constants{camera.getMVP()};
+
+
+    const auto& transform = *component.get<ObjectTransform3D>();
+    const auto& modelMat = transform.getModelMatrix();
+
+    const auto& finalMvp = camera.getViewProjection() *  modelMat;
+
+    PushConstants constants{finalMvp};
 
     vkCmdPushConstants(comandBuff,
                        masterPipeline.getGraphicsPipelineLayout(),
