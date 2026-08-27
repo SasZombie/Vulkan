@@ -134,4 +134,8 @@ namespace sas
         }
     };
 
+    struct RenderObject;
+    struct ObjectTransform3D;
+    using DrawingComponents = sas::Combined<sas::RenderObject, sas::ObjectTransform3D>;
+
 } // namespace sas

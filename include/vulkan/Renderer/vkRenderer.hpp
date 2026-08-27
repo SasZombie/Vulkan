@@ -29,14 +29,12 @@ namespace sas
 
     //TODO: Renderer should have multiple sub-renderers to take advantage
     //Of how vulkan works
-    using DrawingComponents = sas::Combined<sas::RenderObject, sas::ObjectTransform3D>;
-
     class VulkanRenderer
     {
     
     private:
 
-        std::vector<std::unique_ptr<IRenderPass>> passes;
+        std::vector<std::unique_ptr<IRenderPass>> pipelinePasses;
         void renderEditorUi() const noexcept;
 
     public:

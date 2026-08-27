@@ -14,9 +14,11 @@ sas::VulkanRenderer::VulkanRenderer(Window &nwindow, Camera &ncamera, VulkanDevi
       components{&vulkanLowLvl.vkBridge, &inputPipeline, &viewPort, &raster, &pixelStyle, &sharedObjects},
       masterPipeline(vulkanLowLvl.vkDevice, components)
 {
-    passes.emplace_back(std::make_unique<MainScenePass>("Main Scene Pass"));
+    pipelinePasses.emplace_back(std::make_unique<MainScenePass>("Main Scene Pass"));
 }
 
+
+//MARK: Draw Frame
 void sas::VulkanRenderer::drawFrame(const std::vector<DrawingComponents> &objectsToRender) noexcept
 {
     preFrame();
@@ -31,24 +33,19 @@ void sas::VulkanRenderer::drawFrame(const std::vector<DrawingComponents> &object
 
     dynamicRendering(imageIndex);
 
-    uint32_t prevId = 0;
+    setUpRaster({});
+    setUpViewPort({});
 
-    for (const auto &combinedItem : objectsToRender)
+    setUpShader({});
+
+    RenderPassComponents renderComponents{vulkanLowLvl, masterPipeline, camera};
+
+    for(const auto& pass : pipelinePasses)
     {
-        const auto &renderObj = *combinedItem.get<RenderObject>();
-
-        // TODO: This should be once per frame, but it doesnt really matter atm
-        setUpRaster(renderObj);
-        setUpViewPort(renderObj);
-
-        if (renderObj.material->shader->getId() != prevId)
+        if(pass->isActive)
         {
-            setUpShader(renderObj);
-            prevId = renderObj.material->shader->getId();
+            pass->record(objectsToRender, renderComponents);
         }
-
-        
-        drawCallRecorder(combinedItem);
     }
 
     renderEditorUi();
@@ -268,13 +265,6 @@ void sas::VulkanRenderer::setUpShader(const RenderObject &renderObj) const noexc
     attrDesc[3].offset = offsetof(Vertex, color);
 
     vkCmdSetVertexInputEXT(comandBuff, 1, &bindingDesc, 4, attrDesc);
-
-    VkShaderStageFlagBits stages[] = {VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT};
-    const auto &[vert, frag] = renderObj.material->shader->getShaderModule();
-
-    VkShaderEXT shaders[] = {vert, frag};
-
-    vkCmdBindShadersEXT(comandBuff, 2, stages, shaders);
 }
 
 // TODO: This should be per material
