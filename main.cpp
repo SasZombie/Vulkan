@@ -104,7 +104,7 @@ int main()
     }
 
     glfwTerminate();
-    BaseLogger::log("==============================\nFinished app\n==============================");
+    BaseLogger::log("\n==============================\nFinished app\n==============================");
 }
 
 #if defined(__has_feature)

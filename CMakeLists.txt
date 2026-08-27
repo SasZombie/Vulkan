@@ -44,6 +44,7 @@ SET(ENGINE_SOURCES
 
 SET(RENDERER_SOURCES
     vkRenderer.cpp
+    RenderPass.cpp
 )
 
 SET(GLOBAL_SOURCES

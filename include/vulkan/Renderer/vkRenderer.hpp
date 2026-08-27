@@ -22,6 +22,7 @@
 #include "EntityRegistry.hpp"
 #include "ObjectTransform.hpp"
 
+#include "RenderPass.hpp"
 
 namespace sas
 {
@@ -34,6 +35,8 @@ namespace sas
     {
     
     private:
+
+        std::vector<std::unique_ptr<IRenderPass>> passes;
         void renderEditorUi() const noexcept;
 
     public:

@@ -14,6 +14,7 @@ sas::VulkanRenderer::VulkanRenderer(Window &nwindow, Camera &ncamera, VulkanDevi
       components{&vulkanLowLvl.vkBridge, &inputPipeline, &viewPort, &raster, &pixelStyle, &sharedObjects},
       masterPipeline(vulkanLowLvl.vkDevice, components)
 {
+    passes.emplace_back(std::make_unique<MainScenePass>("Main Scene Pass"));
 }
 
 void sas::VulkanRenderer::drawFrame(const std::vector<DrawingComponents> &objectsToRender) noexcept
@@ -34,9 +35,9 @@ void sas::VulkanRenderer::drawFrame(const std::vector<DrawingComponents> &object
 
     for (const auto &combinedItem : objectsToRender)
     {
-        const auto& renderObj = *combinedItem.get<RenderObject>();
-        // auto transform = *combinedItem.get<ObjectTransform3D>();
+        const auto &renderObj = *combinedItem.get<RenderObject>();
 
+        // TODO: This should be once per frame, but it doesnt really matter atm
         setUpRaster(renderObj);
         setUpViewPort(renderObj);
 
@@ -46,6 +47,7 @@ void sas::VulkanRenderer::drawFrame(const std::vector<DrawingComponents> &object
             prevId = renderObj.material->shader->getId();
         }
 
+        
         drawCallRecorder(combinedItem);
     }
 
@@ -133,13 +135,10 @@ void sas::VulkanRenderer::dynamicRendering(uint32_t imageIndex) const noexcept
 
 void sas::VulkanRenderer::drawCallRecorder(const DrawingComponents &component) const noexcept
 {
-    auto renderObj = *component.get<RenderObject>();
+    const auto &renderObj = *component.get<RenderObject>();
 
     const auto &comandBuff = vulkanLowLvl.vkCommand.getCommandBuffer();
     const auto &descriptor = renderObj.material->descriptorSet;
-
-    vkCmdSetDepthBiasEnable(comandBuff, VK_FALSE);
-    vkCmdSetPrimitiveTopologyEXT(vulkanLowLvl.vkCommand.getCommandBuffer(), inputPipeline.getInputAssembly().topology);
 
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(comandBuff, 0, 1, &renderObj.mesh->vertexBuffer, offsets);
@@ -154,11 +153,10 @@ void sas::VulkanRenderer::drawCallRecorder(const DrawingComponents &component) c
         &descriptor,
         0, nullptr);
 
+    const auto &transform = *component.get<ObjectTransform3D>();
+    const auto &modelMat = transform.getModelMatrix();
 
-    const auto& transform = *component.get<ObjectTransform3D>();
-    const auto& modelMat = transform.getModelMatrix();
-
-    const auto& finalMvp = camera.getViewProjection() *  modelMat;
+    const auto &finalMvp = camera.getViewProjection() * modelMat;
 
     PushConstants constants{finalMvp};
 
@@ -303,6 +301,9 @@ void sas::VulkanRenderer::setUpRaster(const RenderObject &renderObj) const noexc
 
     VkSampleMask sampleMask = 0xFFFFFFFF;
     vkCmdSetSampleMaskEXT(comandBuff, raster.getMultisampling().rasterizationSamples, &sampleMask);
+
+    vkCmdSetDepthBiasEnable(comandBuff, VK_FALSE);
+    vkCmdSetPrimitiveTopologyEXT(vulkanLowLvl.vkCommand.getCommandBuffer(), inputPipeline.getInputAssembly().topology);
 }
 
 void sas::VulkanRenderer::setUpViewPort(const RenderObject &renderObj) const noexcept
@@ -312,7 +313,6 @@ void sas::VulkanRenderer::setUpViewPort(const RenderObject &renderObj) const noe
     vkCmdSetViewportWithCount(comandBuff, 1, &viewPort.getViewport());
     vkCmdSetScissorWithCount(comandBuff, 1, &viewPort.getScissors());
 }
-
 
 void sas::VulkanRenderer::renderEditorUi() const noexcept
 {
@@ -327,6 +327,6 @@ void sas::VulkanRenderer::renderEditorUi() const noexcept
 
     // 3. Render ImGui draw lists into Vulkan command buffer
     ImGui::Render();
-    ImDrawData* drawData = ImGui::GetDrawData();
+    ImDrawData *drawData = ImGui::GetDrawData();
     ImGui_ImplVulkan_RenderDrawData(drawData, vulkanLowLvl.vkCommand.getCommandBuffer());
 }
