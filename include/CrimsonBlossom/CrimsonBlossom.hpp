@@ -4,6 +4,9 @@
 #include "vkRenderer.hpp"
 #include "Scene.hpp"
 #include "EngineUi.hpp"
+#include "Logger.hpp"
+#include <unordered_map>
+#include <ranges>
 
 namespace sas
 {
@@ -18,26 +21,45 @@ namespace sas
         EngineUi engineUi;
         VulkanRenderer vkRenderer;
         AssetManager assetManager;
-        std::vector<Scene> scenes;
+        std::unordered_map<uint32_t, Scene> scenes;
+
+        uint32_t activeSceneId = std::numeric_limits<uint32_t>::max();
+
+        Logger* logger = BaseLogger::getLogger("Engine");
 
         CrimsonBlossom(Window &window, Camera& camera) noexcept
             : vulkanLowLvl(window), sharedObjects(vulkanLowLvl), 
               engineUi(vulkanLowLvl, window),
               vkRenderer(window, camera, vulkanLowLvl, sharedObjects), 
               assetManager(vulkanLowLvl, sharedObjects)
-        {}
-
-        void addScene(Scene newScene) noexcept
         {
-            scenes.push_back(std::move(newScene));
         }
 
-        std::vector<Scene> getScenes() const noexcept
+        Scene* createScene() noexcept
         {
-            return scenes;
+            static uint32_t currentSceneId = 0;
+
+            const auto& [iter, success] = scenes.try_emplace(currentSceneId, currentSceneId);
+
+            if(!success)
+            {
+                logger->error("Cannot add a new scene");
+                return nullptr;
+            }
+
+            ++currentSceneId;
+
+            return &iter->second; 
+        }
+
+        [[nodiscard]]std::vector<Scene> getScenes() const noexcept
+        {
+            return scenes | std::views::values | std::ranges::to<std::vector>();
         }
 
         void update() noexcept;
+
+        void createUi() const noexcept;
     };    
     
 } // namespace sas

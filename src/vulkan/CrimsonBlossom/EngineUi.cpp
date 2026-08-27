@@ -52,7 +52,6 @@ sas::EngineUi::EngineUi(VulkanDevices &dev, const Window &window) noexcept
 
 sas::EngineUi::~EngineUi() noexcept
 {
-
     vkDeviceWaitIdle(device);
 
     ImGui_ImplVulkan_Shutdown();
@@ -88,4 +87,24 @@ void sas::EngineUi::initPool()
     {
         throw std::runtime_error("Failed to create ImGui descriptor pool!");
     }
+}
+
+void sas::EngineUi::newFrame() const noexcept
+{
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+}
+
+void sas::EngineUi::writeFrames() const noexcept
+{
+    ImGui::Begin("Inspector");
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    ImGui::End();
+}
+
+void sas::EngineUi::updateFrame() const noexcept
+{
+    newFrame();
+    writeFrames();
 }

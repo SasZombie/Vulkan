@@ -82,7 +82,7 @@ namespace sas
 
         void imageLayoutTransitionPresent(VkImageMemoryBarrier2 &barrierToRender) const noexcept;
 
-        void gpuCall(uint32_t imageIndex) const noexcept;
+        void gpuCall() const noexcept;
 
         void presentImageToWindow(uint32_t imageIndex) const noexcept;
 

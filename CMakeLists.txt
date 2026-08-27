@@ -13,7 +13,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_options(project_warnings_vulkan INTERFACE
         -Wall -Wextra -Wformat-nonliteral -Wcast-align -Wpointer-arith
         -Wmissing-declarations -Winline -Wundef -Wcast-qual -Wshadow
-        -Wwrite-strings -Wno-unused-parameter -Wfloat-equal
+        -Wwrite-strings -Wno-unused-parameter -Wfloat-equal -Wunused-parameter
     )
     target_compile_options(project_sanitizers_vulkan INTERFACE
         -fsanitize=undefined -fsanitize=address -fsanitize=leak -g

@@ -55,4 +55,20 @@ namespace sas
         ~MainScenePass() noexcept = default;
     };
 
+
+
+    class EngineUiPass final : public IRenderPass
+    {
+    private:
+    public:
+        EngineUiPass(const std::string &passName) noexcept
+            : IRenderPass(passName)
+        {
+        }
+
+        void record(const std::vector<DrawingComponents> &objectsToRender, const RenderPassComponents& components) const noexcept override;
+
+        ~EngineUiPass() noexcept = default;
+    };
+
 } // namespace sas

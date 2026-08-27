@@ -47,16 +47,26 @@ int main()
     {
         BaseLogger::addLogger("Asset");
         BaseLogger::addLogger("Material");
+
+        BaseLogger::addLogger("Engine");
+        
         Window window(800, 600, "Meow");
         Camera camera{math::Vec3{0, 0, 3.f}};
 
         sas::CrimsonBlossom engine{window, camera};
 
-        Scene firstScene;
+        auto* firstScene = engine.createScene();
 
-        uint32_t sphereEntity = firstScene.sceneRegistry.createEntity();
-        uint32_t cubeEntity = firstScene.sceneRegistry.createEntity();
-        uint32_t skybox = firstScene.sceneRegistry.createEntity();
+        if(!firstScene)
+        {
+            return;
+        }
+        engine.activeSceneId = firstScene->id;
+
+
+        uint32_t sphereEntity = firstScene->sceneRegistry.createEntity();
+        uint32_t cubeEntity = firstScene->sceneRegistry.createEntity();
+        uint32_t skybox = firstScene->sceneRegistry.createEntity();
 
         RenderMesh spereMesh = engine.assetManager.loadMesh("resources/models/sphere.obj");
         RenderMesh cubeMesh = engine.assetManager.loadMesh("resources/models/Cube.obj");
@@ -84,16 +94,14 @@ int main()
         CubeObj.material = firstMaterial;
         SkyBoxObj.material = firstMaterial;
 
-        firstScene.sceneRegistry.addComponent(sphereEntity, ShpereObj);
-        firstScene.sceneRegistry.addComponent(sphereEntity, ObjectTransform3D{});
-
-        firstScene.sceneRegistry.addComponent(cubeEntity, CubeObj);
-        firstScene.sceneRegistry.addComponent(cubeEntity, transform);
+        firstScene->sceneRegistry.addComponent(sphereEntity, ShpereObj);
+        firstScene->sceneRegistry.addComponent(sphereEntity, ObjectTransform3D{});
+        firstScene->sceneRegistry.addComponent(cubeEntity, CubeObj);
+        firstScene->sceneRegistry.addComponent(cubeEntity, transform);
 
         // firstScene.sceneRegistry.addComponent(skybox, skyboxTransform);
         // firstScene.sceneRegistry.addComponent(skybox, SkyBoxObj);
 
-        engine.addScene(firstScene);
 
         while (!glfwWindowShouldClose(window))
         {

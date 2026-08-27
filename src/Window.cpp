@@ -93,7 +93,8 @@ void sas::Window::processKeyboardInput(Camera &camera) noexcept
 }
 
 void mouse_callback(GLFWwindow *glWindow, double xpos, double ypos) noexcept
-{
+{   
+    (void) glWindow;
 
     float xoffset = xpos - lastX;
     float yoffset = lastY - ypos;

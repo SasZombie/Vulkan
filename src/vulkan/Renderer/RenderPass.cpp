@@ -2,7 +2,11 @@
 #include "RenderObject.hpp"
 #include "ObjectTransform.hpp"
 
-void sas::MainScenePass::record(const std::vector<DrawingComponents> &objectsToRender, const RenderPassComponents& components) const noexcept
+#include <imgui.h>
+#include <backends/imgui_impl_vulkan.h>
+#include <backends/imgui_impl_glfw.h>
+
+void sas::MainScenePass::record(const std::vector<DrawingComponents> &objectsToRender, const RenderPassComponents &components) const noexcept
 {
     uint32_t prevId = 0;
 
@@ -26,7 +30,7 @@ void sas::MainScenePass::record(const std::vector<DrawingComponents> &objectsToR
     }
 }
 
-void sas::MainScenePass::drawCallRecorder(const DrawingComponents &component, const RenderPassComponents& components) const noexcept
+void sas::MainScenePass::drawCallRecorder(const DrawingComponents &component, const RenderPassComponents &components) const noexcept
 {
     const auto &renderObj = *component.get<RenderObject>();
 
@@ -61,4 +65,13 @@ void sas::MainScenePass::drawCallRecorder(const DrawingComponents &component, co
                        &constants);
 
     vkCmdDrawIndexed(comandBuff, renderObj.mesh->indexCount, 1, 0, 0, 0);
+}
+
+void sas::EngineUiPass::record(const std::vector<DrawingComponents> &objectsToRender, const RenderPassComponents &components) const noexcept
+{
+    (void)objectsToRender;
+
+    ImGui::Render();
+    ImDrawData *drawData = ImGui::GetDrawData();
+    ImGui_ImplVulkan_RenderDrawData(drawData, components.devices.vkCommand.getCommandBuffer());
 }

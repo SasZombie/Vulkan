@@ -1,7 +1,5 @@
 #include "vkRenderer.hpp"
-#include <imgui.h>
-#include <backends/imgui_impl_vulkan.h>
-#include <backends/imgui_impl_glfw.h>
+
 
 #include "Mesh.hpp"
 
@@ -15,8 +13,8 @@ sas::VulkanRenderer::VulkanRenderer(Window &nwindow, Camera &ncamera, VulkanDevi
       masterPipeline(vulkanLowLvl.vkDevice, components)
 {
     pipelinePasses.emplace_back(std::make_unique<MainScenePass>("Main Scene Pass"));
+    pipelinePasses.emplace_back(std::make_unique<EngineUiPass>("Engine Ui Pass"));
 }
-
 
 //MARK: Draw Frame
 void sas::VulkanRenderer::drawFrame(const std::vector<DrawingComponents> &objectsToRender) noexcept
@@ -35,7 +33,6 @@ void sas::VulkanRenderer::drawFrame(const std::vector<DrawingComponents> &object
 
     setUpRaster({});
     setUpViewPort({});
-
     setUpShader({});
 
     RenderPassComponents renderComponents{vulkanLowLvl, masterPipeline, camera};
@@ -48,13 +45,11 @@ void sas::VulkanRenderer::drawFrame(const std::vector<DrawingComponents> &object
         }
     }
 
-    renderEditorUi();
-
     vkCmdEndRendering(vulkanLowLvl.vkCommand.getCommandBuffer());
 
     imageLayoutTransitionPresent(barrierToRender);
 
-    gpuCall(imageIndex);
+    gpuCall();
 
     presentImageToWindow(imageIndex);
 
@@ -184,7 +179,7 @@ void sas::VulkanRenderer::imageLayoutTransitionPresent(VkImageMemoryBarrier2 &ba
     vkEndCommandBuffer(vulkanLowLvl.vkCommand.getCommandBuffer());
 }
 
-void sas::VulkanRenderer::gpuCall(uint32_t imageIndex) const noexcept
+void sas::VulkanRenderer::gpuCall() const noexcept
 {
     VkSemaphoreSubmitInfo waitSemaphoreInfo{};
     waitSemaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
@@ -228,6 +223,8 @@ void sas::VulkanRenderer::presentImageToWindow(uint32_t imageIndex) const noexce
 
 void sas::VulkanRenderer::setUpShader(const RenderObject &renderObj) const noexcept
 {
+    (void) renderObj;
+
     const auto &comandBuff = vulkanLowLvl.vkCommand.getCommandBuffer();
 
     VkBool32 blendEnable = VK_FALSE;
@@ -271,6 +268,7 @@ void sas::VulkanRenderer::setUpShader(const RenderObject &renderObj) const noexc
 // But I havent introduced that notion yet
 void sas::VulkanRenderer::setUpRaster(const RenderObject &renderObj) const noexcept
 {
+    (void) renderObj;
     const auto &rasterInfo = raster.getRasterizer();
     const auto &comandBuff = vulkanLowLvl.vkCommand.getCommandBuffer();
 
@@ -298,6 +296,7 @@ void sas::VulkanRenderer::setUpRaster(const RenderObject &renderObj) const noexc
 
 void sas::VulkanRenderer::setUpViewPort(const RenderObject &renderObj) const noexcept
 {
+    (void) renderObj;
     const auto &comandBuff = vulkanLowLvl.vkCommand.getCommandBuffer();
 
     vkCmdSetViewportWithCount(comandBuff, 1, &viewPort.getViewport());
@@ -306,17 +305,5 @@ void sas::VulkanRenderer::setUpViewPort(const RenderObject &renderObj) const noe
 
 void sas::VulkanRenderer::renderEditorUi() const noexcept
 {
-    ImGui_ImplVulkan_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-
-    // 2. Build your Editor UI
-    ImGui::Begin("Inspector");
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-    ImGui::End();
-
-    // 3. Render ImGui draw lists into Vulkan command buffer
-    ImGui::Render();
-    ImDrawData *drawData = ImGui::GetDrawData();
-    ImGui_ImplVulkan_RenderDrawData(drawData, vulkanLowLvl.vkCommand.getCommandBuffer());
+   
 }
