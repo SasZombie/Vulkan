@@ -116,13 +116,13 @@ void sas::EngineUi::updateFrame() const noexcept
 void sas::EditorPannel::renderUI() const noexcept
 {
     ImGui::Begin("Inspector");
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    ImGui::Text("Materials");
 
     if (ImGui::Button("Clickable"))
     {
         BaseLogger::log("Button Clicked");
-
-        // commandBus.executeCommand<>();
+        
+    
     }
 
     ImGui::End();

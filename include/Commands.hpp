@@ -16,4 +16,12 @@ namespace sas
     {
         uint32_t id;
     };
+
+    struct getAllMaterials : ICommand
+    {
+
+    };
+
+
+
 } // namespace sas

@@ -371,6 +371,7 @@ sas::AssetManager::AssetManager(VulkanDevices &ctx, VulkanSharedObjects &shardOb
     : vulkanCtx(ctx), sharedObjs(shardObj), materialManager(vulkanCtx, sharedObjs)
 {
     materialManager.loadTexture(defaulTexturePath);
+
 }
 
 sas::RenderMesh sas::AssetManager::loadMesh(const std::string &path) noexcept
