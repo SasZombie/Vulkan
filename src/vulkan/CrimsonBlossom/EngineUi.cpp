@@ -7,7 +7,7 @@
 #include <imgui_impl_vulkan.h>
 #include <array>
 
-sas::EngineUi::EngineUi(VulkanDevices &dev, const Window &window) noexcept
+sas::EngineUi::EngineUi(VulkanDevices &dev, const Window &window, CommandBus &bus) noexcept
     : device(dev.vkDevice)
 {
     initPool();
@@ -48,6 +48,9 @@ sas::EngineUi::EngineUi(VulkanDevices &dev, const Window &window) noexcept
     initInfo.PipelineRenderingCreateInfo = createInfo;
 
     ImGui_ImplVulkan_Init(&initInfo);
+
+    pannels.push_back(std::make_unique<EditorPannel>(bus));
+    pannels.push_back(std::make_unique<FPSpannel>(bus));
 }
 
 sas::EngineUi::~EngineUi() noexcept
@@ -98,13 +101,44 @@ void sas::EngineUi::newFrame() const noexcept
 
 void sas::EngineUi::writeFrames() const noexcept
 {
-    ImGui::Begin("Inspector");
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-    ImGui::End();
+    for (const auto &panel : pannels)
+    {
+        panel->renderUI();
+    }
 }
 
 void sas::EngineUi::updateFrame() const noexcept
 {
     newFrame();
     writeFrames();
+}
+
+void sas::EditorPannel::renderUI() const noexcept
+{
+    ImGui::Begin("Inspector");
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+    if (ImGui::Button("Clickable"))
+    {
+        BaseLogger::log("Button Clicked");
+
+        // commandBus.executeCommand<>();
+    }
+
+    ImGui::End();
+}
+
+void sas::FPSpannel::renderUI() const noexcept
+{
+    ImGui::Begin("FpsPannel");
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+    if (ImGui::Button("Clickable"))
+    {
+        BaseLogger::log("Button Clicked");
+
+        commandBus.post<SpawnEntityCommand>(SpawnEntityCommand{});
+    }
+
+    ImGui::End();
 }

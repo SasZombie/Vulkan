@@ -7,6 +7,7 @@
 #include <typeindex>
 
 #include "ComponentContainer.hpp"
+#include "CommandBus.hpp"
 
 namespace sas
 {
@@ -44,9 +45,15 @@ namespace sas
         }
 
     public:
-        EntityRegistry() = default;
+        EntityRegistry(CommandBus &bus) noexcept
+        {
+            bus.subscribe<SpawnEntityCommand>([this](const SpawnEntityCommand &cmd) {
+                (void)cmd;
+                createEntity();
+            });
+        }
 
-        EntityRegistry(const EntityRegistry &other)
+        EntityRegistry(const EntityRegistry &other) noexcept
             : nextId(other.nextId)
         {
             for (const auto &[type, container] : other.componentsMap)
@@ -55,8 +62,7 @@ namespace sas
             }
         }
 
-        // Deep Copy Assignment
-        EntityRegistry &operator=(const EntityRegistry &other)
+        EntityRegistry &operator=(const EntityRegistry &other) noexcept
         {
             if (this != &other)
             {
@@ -70,13 +76,17 @@ namespace sas
             return *this;
         }
 
-        // Default Move Operations
         EntityRegistry(EntityRegistry &&) noexcept = default;
         EntityRegistry &operator=(EntityRegistry &&) noexcept = default;
 
         uint32_t createEntity() noexcept
         {
             return nextId++;
+        }
+
+        [[nodiscard]] uint32_t getEntityCount() const noexcept
+        {
+            return nextId;
         }
 
         void destroyEntity(uint32_t entityId) noexcept
@@ -117,17 +127,14 @@ namespace sas
             for (size_t i = 0; i < entities.size(); ++i)
             {
                 uint32_t entityId = entities[i];
-                // Check that all secondary containers also have this entity
-
                 bool hasAll = (... && (getComponentContainer<Rest>()->get(entityId) != nullptr));
 
                 if (hasAll)
                 {
                     result.push_back({entityId,
                                       std::make_tuple(
-                                          &data[i],                                       
-                                          getComponentContainer<Rest>()->get(entityId)... 
-                                          )});
+                                          &data[i],
+                                          getComponentContainer<Rest>()->get(entityId)...)});
                 }
             }
             return result;

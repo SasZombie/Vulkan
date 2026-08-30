@@ -49,9 +49,10 @@ int main()
         BaseLogger::addLogger("Material");
 
         BaseLogger::addLogger("Engine");
+        BaseLogger::addLogger("Ui");
         
         Window window(800, 600, "Meow");
-        Camera camera{math::Vec3{0, 0, 3.f}};
+        Camera camera{{0, 0, 3.f}};
 
         sas::CrimsonBlossom engine{window, camera};
 
@@ -59,7 +60,7 @@ int main()
 
         if(!firstScene)
         {
-            return;
+            return 1;
         }
         engine.activeSceneId = firstScene->id;
 
@@ -89,13 +90,13 @@ int main()
         CubeObj.mesh = &cubeMesh;
         SkyBoxObj.mesh = &cubeMesh;
 
-
         ShpereObj.material = firstMaterial;
         CubeObj.material = firstMaterial;
         SkyBoxObj.material = firstMaterial;
 
         firstScene->sceneRegistry.addComponent(sphereEntity, ShpereObj);
         firstScene->sceneRegistry.addComponent(sphereEntity, ObjectTransform3D{});
+
         firstScene->sceneRegistry.addComponent(cubeEntity, CubeObj);
         firstScene->sceneRegistry.addComponent(cubeEntity, transform);
 
@@ -108,6 +109,8 @@ int main()
             glfwPollEvents();
             window.processKeyboardInput(camera);
             engine.update();
+
+            BaseLogger::log("Nr of entities = " + std::to_string(firstScene->sceneRegistry.getEntityCount()));
         }
     }
 

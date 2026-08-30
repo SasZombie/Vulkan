@@ -5,6 +5,7 @@
 #include "Scene.hpp"
 #include "EngineUi.hpp"
 #include "Logger.hpp"
+
 #include <unordered_map>
 #include <ranges>
 
@@ -18,6 +19,7 @@ namespace sas
         VulkanDevices vulkanLowLvl;
         VulkanSharedObjects sharedObjects;
 
+        CommandBus commandBus;
         EngineUi engineUi;
         VulkanRenderer vkRenderer;
         AssetManager assetManager;
@@ -29,7 +31,7 @@ namespace sas
 
         CrimsonBlossom(Window &window, Camera& camera) noexcept
             : vulkanLowLvl(window), sharedObjects(vulkanLowLvl), 
-              engineUi(vulkanLowLvl, window),
+              engineUi(vulkanLowLvl, window, commandBus),
               vkRenderer(window, camera, vulkanLowLvl, sharedObjects), 
               assetManager(vulkanLowLvl, sharedObjects)
         {
@@ -39,7 +41,7 @@ namespace sas
         {
             static uint32_t currentSceneId = 0;
 
-            const auto& [iter, success] = scenes.try_emplace(currentSceneId, currentSceneId);
+            const auto& [iter, success] = scenes.try_emplace(currentSceneId, currentSceneId, commandBus);
 
             if(!success)
             {
