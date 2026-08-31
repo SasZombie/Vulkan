@@ -6,6 +6,7 @@
 #include "Math.hpp"
 #include "Logger.hpp"
 #include "vkComponents.hpp"
+#include "CommandBus.hpp"
 
 #include <unordered_map>
 
@@ -62,28 +63,30 @@ namespace sas
 
         VulkanDevices &vulkanCtx;
         VulkanSharedObjects &sharedObjs;
+        CommandBus &bus;
 
-        Logger* logger = BaseLogger::getLogger("Material");
+        Logger *logger = BaseLogger::getLogger("Material");
 
         void addTexture(Material &material, const RenderTexture &texture) noexcept;
 
     public:
-        MaterialManager(VulkanDevices &vctx, VulkanSharedObjects &sharedObj) noexcept
-            : vulkanCtx(vctx), sharedObjs(sharedObj)
+        MaterialManager(VulkanDevices &vctx, VulkanSharedObjects &sharedObj, CommandBus &cbus) noexcept
+            : vulkanCtx(vctx), sharedObjs(sharedObj), bus(cbus)
         {
+            bus.subscribe<QuerryMapCommand<std::string, Material>>([&](const QuerryMapCommand<std::string, Material> &cmd)
+                                                               { cmd.map = &this->materialsCache; });
         }
 
         Material *getMaterial(std::string_view name) noexcept;
-        void addMaterial(std::string_view name, const Material& material) noexcept;
+        void addMaterial(std::string_view name, const Material &material) noexcept;
 
         RenderTexture loadTexture(const std::string &path) noexcept;
         VulkanDynamicShader &loadShader(const std::string &vert = "", const std::string &frag = "") noexcept;
 
         // void addTexture(RenderObject &objWithMesh, const std::string &path) noexcept;
 
-        
         // Material loadMaterial(std::string_view path) noexcept;
-        Material* addMaterial(std::string_view name, VulkanDynamicShader& shader, RenderTexture& texture) noexcept;
+        Material *addMaterial(std::string_view name, VulkanDynamicShader &shader, RenderTexture &texture) noexcept;
 
         ~MaterialManager() noexcept
         {

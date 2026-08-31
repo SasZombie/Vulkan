@@ -34,6 +34,8 @@ namespace sas
     class IEditorPannel
     {
     public:
+        Logger *logger = BaseLogger::getLogger("Ui");
+
         EditorContext context;
 
         virtual void renderUI() const noexcept = 0;

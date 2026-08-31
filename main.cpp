@@ -110,7 +110,7 @@ int main()
             window.processKeyboardInput(camera);
             engine.update();
 
-            BaseLogger::log("Nr of entities = " + std::to_string(firstScene->sceneRegistry.getEntityCount()));
+            // BaseLogger::log("Nr of entities = " + std::to_string(firstScene->sceneRegistry.getEntityCount()));
         }
     }
 

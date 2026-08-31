@@ -11,7 +11,7 @@
 namespace sas
 {
 
-    // Cpu stuff
+    // Cpu
     struct Vertex
     {
         math::Vec3 pos;
@@ -29,6 +29,8 @@ namespace sas
     //Cpu
     struct Mesh
     {
+        std::string path;
+        std::string name;
         std::vector<Vertex> vertices;
         std::vector<int> indices;
     };

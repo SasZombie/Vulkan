@@ -29,6 +29,7 @@ namespace sas
     {
     private:
         uint32_t nextId = 0;
+        CommandBus &bus;
         std::unordered_map<std::type_index, std::unique_ptr<IComponent>> componentsMap;
 
         template <typename T>
@@ -45,16 +46,18 @@ namespace sas
         }
 
     public:
-        EntityRegistry(CommandBus &bus) noexcept
+        EntityRegistry(CommandBus &cbus) noexcept
+            : bus(cbus)
         {
-            bus.subscribe<SpawnEntityCommand>([this](const SpawnEntityCommand &cmd) {
+            bus.subscribe<SpawnEntityCommand>([this](const SpawnEntityCommand &cmd)
+                                              {
                 (void)cmd;
-                createEntity();
-            });
+                createEntity(); });
         }
 
+        // MoveCtor
         EntityRegistry(const EntityRegistry &other) noexcept
-            : nextId(other.nextId)
+            : nextId(other.nextId), bus(other.bus)
         {
             for (const auto &[type, container] : other.componentsMap)
             {
@@ -113,6 +116,17 @@ namespace sas
         ComponentContainer<T> *getComponents() noexcept
         {
             return getComponentContainer<T>();
+        }
+
+        template <typename Primary, typename... Rest>
+        void addListQueeryHandler() noexcept
+        {
+
+            bus.subscribe<QuerryListCommand<Combined<Primary, Rest...>>>(
+                [this](const QuerryListCommand<Combined<Primary, Rest...>> &cmd)
+                {
+                    cmd.objList = this->getCombined<Primary, Rest...>();
+                });
         }
 
         template <typename Primary, typename... Rest>

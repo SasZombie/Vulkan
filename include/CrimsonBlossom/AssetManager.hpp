@@ -9,8 +9,6 @@
 #include "Logger.hpp"
 #include "Material.hpp"
 
-#include "CommandBus.hpp"
-
 namespace sas
 {
 
@@ -19,28 +17,30 @@ namespace sas
     private:
         VulkanDevices &vulkanCtx;
         VulkanSharedObjects &sharedObjs;
-        std::unordered_map<std::string, RenderMesh> meshCache;
     public:
         MaterialManager materialManager;
     private:
+        CommandBus& bus;
+        std::unordered_map<std::string, RenderMesh> gpuMeshCache;
+        std::unordered_map<std::string, Mesh> cpuMeshCache;
 
         Logger* logger = BaseLogger::getLogger("Asset");
 
-        Mesh getRawMesh(std::string_view path) const noexcept;
+        Mesh getRawMesh(std::string_view path) noexcept;
         uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
         void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory) const noexcept;
         RenderMesh createGpuMesh(const sas::Mesh &mesh) const noexcept;
 
 
     public:
-        AssetManager(VulkanDevices &ctx, VulkanSharedObjects &obj) noexcept;
+        AssetManager(VulkanDevices &ctx, VulkanSharedObjects &obj, CommandBus& cmdBus) noexcept;
         RenderMesh loadMesh(const std::string &path) noexcept;
        
 
         ~AssetManager() noexcept
         {
             vkDeviceWaitIdle(vulkanCtx.vkDevice);
-            for (auto &elem : meshCache)
+            for (auto &elem : gpuMeshCache)
             {
                 const auto &seccond = elem.second;
 

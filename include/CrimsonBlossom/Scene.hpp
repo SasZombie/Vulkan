@@ -15,6 +15,7 @@ namespace sas
         Scene(uint32_t sceneId, CommandBus& bus) noexcept
             : id(sceneId), sceneRegistry(bus)
         {
+            sceneRegistry.addListQueeryHandler<RenderObject, ObjectTransform3D>();
         }
     };
 

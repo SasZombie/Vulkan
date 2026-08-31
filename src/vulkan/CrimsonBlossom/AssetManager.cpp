@@ -2,9 +2,9 @@
 
 #include <cstring>
 #include <fstream>
+#include <ranges>
 #include "Mesh.hpp"
 #include "Math.hpp"
-
 
 static const std::string defaulTexturePath = "resources/textures/textureNotFound.bmp";
 
@@ -60,13 +60,14 @@ static void _faceTokenize(const std::string &source, std::vector<std::string> &t
 
 [[nodiscard]] static sas::Mesh loadObj(std::string_view filename) noexcept
 {
-    const auto& logger = sas::BaseLogger::getLogger("Asset");
+    const auto &logger = sas::BaseLogger::getLogger("Asset");
 
     std::vector<sas::Vertex> vertices;
     std::vector<int> indices;
 
+    const std::string strFile{filename};
     // Reading Obj file
-    std::ifstream file(std::string(filename), std::ios::in | std::ios::binary);
+    std::ifstream file(strFile, std::ios::in | std::ios::binary);
     if (!file)
     {
         logger->warn("Model not found " + std::string(filename));
@@ -239,7 +240,7 @@ static void _faceTokenize(const std::string &source, std::vector<std::string> &t
 
     logger->log("Loading: object " + std::string(filename));
 
-    return {vertices, indices};
+    return {strFile, "placeholder", vertices, indices};
 }
 
 static void copyBuffer(const sas::VulkanDevices &devs, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) noexcept
@@ -276,11 +277,36 @@ static void copyBuffer(const sas::VulkanDevices &devs, VkBuffer srcBuffer, VkBuf
     vkFreeCommandBuffers(devs.vkDevice, devs.vkCommand.getCommandPool(), 1, &commandBuffer);
 }
 
+sas::AssetManager::AssetManager(VulkanDevices &ctx, VulkanSharedObjects &shardObj, CommandBus &comBus) noexcept
+    : vulkanCtx(ctx), sharedObjs(shardObj), materialManager(vulkanCtx, sharedObjs, comBus), bus(comBus)
+{
+    materialManager.loadTexture(defaulTexturePath);
+
+    bus.subscribe<QuerryMapCommand<std::string, Mesh>>([&](const QuerryMapCommand<std::string, Mesh> &cmd)
+                                                       { cmd.map = &this->cpuMeshCache; });
+
+    bus.subscribe<CreateNewMeshCommand>([this](const CreateNewMeshCommand &cmd)
+    {
+        loadMesh(cmd.meshPath);
+    });
+}
+
 // TODO: add .gltf format support
 // TODO: Here some kind of dispatcher for diff formats :D and checkers for real files
-sas::Mesh sas::AssetManager::getRawMesh(std::string_view path) const noexcept
+sas::Mesh sas::AssetManager::getRawMesh(std::string_view path) noexcept
 {
-    return loadObj(path);
+    const std::string strPath{path};
+    auto it = cpuMeshCache.find(strPath);
+
+    if (it != cpuMeshCache.end())
+    {
+        return it->second;
+    }
+
+    Mesh m = loadObj(path);
+    auto [insertedIt, success] = cpuMeshCache.emplace(strPath, std::move(m));
+
+    return insertedIt->second;
 }
 
 uint32_t sas::AssetManager::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const
@@ -338,28 +364,28 @@ sas::RenderMesh sas::AssetManager::createGpuMesh(const sas::Mesh &mesh) const no
     VmaAllocation vertexAllocation, indexAllocation;
 
     sharedObjs.allocator.createBuffer(vertexSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                                 VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
-                                 stagingBuffer, stagingAllocation, &stagingAllocInfo);
+                                      VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+                                      stagingBuffer, stagingAllocation, &stagingAllocInfo);
 
     memcpy(stagingAllocInfo.pMappedData, mesh.vertices.data(), (size_t)vertexSize);
 
     sharedObjs.allocator.createBuffer(vertexSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                                 0, 
-                                 vertexBuffer, vertexAllocation);
+                                      0,
+                                      vertexBuffer, vertexAllocation);
 
     copyBuffer(vulkanCtx, stagingBuffer, vertexBuffer, vertexSize);
 
     vmaDestroyBuffer(sharedObjs.allocator, stagingBuffer, stagingAllocation);
 
     sharedObjs.allocator.createBuffer(indexSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                                 VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
-                                 stagingBuffer, stagingAllocation, &stagingAllocInfo);
+                                      VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+                                      stagingBuffer, stagingAllocation, &stagingAllocInfo);
 
     memcpy(stagingAllocInfo.pMappedData, mesh.indices.data(), (size_t)indexSize);
 
     sharedObjs.allocator.createBuffer(indexSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                                 0,
-                                 indexBuffer, indexAllocation);
+                                      0,
+                                      indexBuffer, indexAllocation);
 
     copyBuffer(vulkanCtx, stagingBuffer, indexBuffer, indexSize);
     vmaDestroyBuffer(sharedObjs.allocator, stagingBuffer, stagingAllocation);
@@ -367,19 +393,13 @@ sas::RenderMesh sas::AssetManager::createGpuMesh(const sas::Mesh &mesh) const no
     return {vertexBuffer, indexBuffer, vertexAllocation, indexAllocation, mesh.indices.size()};
 }
 
-sas::AssetManager::AssetManager(VulkanDevices &ctx, VulkanSharedObjects &shardObj) noexcept
-    : vulkanCtx(ctx), sharedObjs(shardObj), materialManager(vulkanCtx, sharedObjs)
-{
-    materialManager.loadTexture(defaulTexturePath);
-
-}
-
 sas::RenderMesh sas::AssetManager::loadMesh(const std::string &path) noexcept
 {
-    if (meshCache.contains(path))
+    if (gpuMeshCache.contains(path))
     {
-        return meshCache.at(path);
+        return gpuMeshCache.at(path);
     }
+
     const auto &loadedMesh = getRawMesh(path);
 
     RenderMesh gpuObject = createGpuMesh(loadedMesh);
@@ -398,7 +418,7 @@ sas::RenderMesh sas::AssetManager::loadMesh(const std::string &path) noexcept
 
     vkEndCommandBuffer(vulkanCtx.vkCommand.getCommandBuffer());
 
-    meshCache[path] = gpuObject;
+    gpuMeshCache[path] = gpuObject;
 
     return gpuObject;
 }

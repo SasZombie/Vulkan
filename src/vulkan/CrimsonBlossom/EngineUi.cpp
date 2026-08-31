@@ -1,4 +1,7 @@
 #include "EngineUi.hpp"
+#include "Mesh.hpp"
+#include "Material.hpp"
+#include "EntityRegistry.hpp"
 
 #include <GLFW/glfw3.h>
 #include <imgui.h>
@@ -116,14 +119,92 @@ void sas::EngineUi::updateFrame() const noexcept
 void sas::EditorPannel::renderUI() const noexcept
 {
     ImGui::Begin("Inspector");
+    ImGui::Text("Meshes");
+
+    QuerryMapCommand<std::string, Mesh> meshes;
+    commandBus.dispatch(meshes);
+
+    if (meshes.map)
+    {
+        for (const auto &[name, mesh] : *meshes.map)
+        {
+            ImGui::PushID(name.c_str());
+
+            if (ImGui::TreeNode(name.c_str()))
+            {
+                ImGui::Text("Vertices: %zu", mesh.vertices.size());
+                ImGui::TreePop();
+            }
+
+            ImGui::PopID();
+        }
+    }
+
+    static char text[50] = "";
+
+    bool isNotNull = (text[0] != '\0');
+
+    ImGui::BeginDisabled(!isNotNull);
+    if (ImGui::Button("Add Mesh"))
+    {
+        const std::string path = "resources/models/";
+        commandBus.post<CreateNewMeshCommand>(CreateNewMeshCommand{path + text});
+
+        text[0] = '\0';
+    }
+    ImGui::EndDisabled();
+    ImGui::InputText("##textarea", text, sizeof(text));
+
+    ImGui::Separator();
     ImGui::Text("Materials");
 
-    if (ImGui::Button("Clickable"))
+    QuerryMapCommand<std::string, Material> materials;
+    commandBus.dispatch(materials);
+
+    if (materials.map)
     {
-        BaseLogger::log("Button Clicked");
-        
-    
+        for (const auto &[name, material] : *materials.map)
+        {
+            ImGui::PushID(name.c_str());
+
+            if (ImGui::TreeNode(name.c_str()))
+            {
+                ImGui::Text("Vertices: %u", material.shader->getId());
+                ImGui::TreePop();
+            }
+
+            ImGui::PopID();
+        }
     }
+    ImGui::Separator();
+
+    ImGui::Text("Rendered Objects");
+
+    //TODO
+    QuerryListCommand<Combined<RenderObject, ObjectTransform3D>> renderObjects;
+    commandBus.dispatch(renderObjects);
+
+    if (materials.map)
+    {
+        for (const auto &[name, material] : *materials.map)
+        {
+            ImGui::PushID(name.c_str());
+
+            if (ImGui::TreeNode(name.c_str()))
+            {
+                ImGui::Text("Vertices: %u", material.shader->getId());
+                ImGui::TreePop();
+            }
+
+            ImGui::PopID();
+        }
+    }
+
+    // if(ImGui::CollapsingHeader("Add object"))
+    // {
+    //     float value;
+    //     ImGui::InputFloat("Put Float", &value);
+    // }
 
     ImGui::End();
 }

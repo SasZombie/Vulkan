@@ -33,7 +33,7 @@ namespace sas
             : vulkanLowLvl(window), sharedObjects(vulkanLowLvl), 
               engineUi(vulkanLowLvl, window, commandBus),
               vkRenderer(window, camera, vulkanLowLvl, sharedObjects), 
-              assetManager(vulkanLowLvl, sharedObjects)
+              assetManager(vulkanLowLvl, sharedObjects, commandBus)
         {
         }
 
