@@ -50,6 +50,10 @@ namespace sas
 
             return model;
         }
+
+
+        void onInspect();
+
     };
 
 }

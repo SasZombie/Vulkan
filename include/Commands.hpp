@@ -5,6 +5,8 @@
 #include <span>
 #include <string>
 
+#include "InspectableComponents.hpp"
+
 namespace sas
 {
     struct ICommand
@@ -22,12 +24,32 @@ namespace sas
         uint32_t id;
     };
 
+    struct ItemSelected : ICommand
+    {
+        uint32_t id;
+        ItemSelected(uint32_t newId) noexcept
+            : id(newId)
+        {
+        }
+    };
+
     struct CreateNewMeshCommand : ICommand
     {
         std::string meshPath;
-        CreateNewMeshCommand(std::string path) : 
-            meshPath(std::move(path))
-        {}
+        CreateNewMeshCommand(std::string path) : meshPath(std::move(path))
+        {
+        }
+    };
+
+    struct QuerryEntityComponentsCommand : ICommand
+    {
+        uint32_t entityId;
+        mutable std::vector<InspectableComponent> components;
+
+        QuerryEntityComponentsCommand(uint32_t id) noexcept
+            : entityId(id)
+        {
+        }
     };
 
     template <typename T>

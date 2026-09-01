@@ -27,23 +27,23 @@ namespace sas
 
         uint32_t activeSceneId = std::numeric_limits<uint32_t>::max();
 
-        Logger* logger = BaseLogger::getLogger("Engine");
+        Logger *logger = BaseLogger::getLogger("Engine");
 
-        CrimsonBlossom(Window &window, Camera& camera) noexcept
-            : vulkanLowLvl(window), sharedObjects(vulkanLowLvl), 
+        CrimsonBlossom(Window &window, Camera &camera) noexcept
+            : vulkanLowLvl(window), sharedObjects(vulkanLowLvl),
               engineUi(vulkanLowLvl, window, commandBus),
-              vkRenderer(window, camera, vulkanLowLvl, sharedObjects), 
+              vkRenderer(window, camera, vulkanLowLvl, sharedObjects),
               assetManager(vulkanLowLvl, sharedObjects, commandBus)
         {
         }
 
-        Scene* createScene() noexcept
+        Scene *createScene() noexcept
         {
             static uint32_t currentSceneId = 0;
 
-            const auto& [iter, success] = scenes.try_emplace(currentSceneId, currentSceneId, commandBus);
+            const auto &[iter, success] = scenes.try_emplace(currentSceneId, currentSceneId, commandBus);
 
-            if(!success)
+            if (!success)
             {
                 logger->error("Cannot add a new scene");
                 return nullptr;
@@ -51,17 +51,18 @@ namespace sas
 
             ++currentSceneId;
 
-            return &iter->second; 
+            return &iter->second;
         }
 
-        [[nodiscard]]std::vector<Scene> getScenes() const noexcept
+        [[nodiscard]] std::vector<Scene> getScenes() const noexcept
         {
             return scenes | std::views::values | std::ranges::to<std::vector>();
         }
 
+        [[nodiscard]] std::vector<sas::DrawingComponents> getDrawingData() noexcept;
         void update() noexcept;
 
         void createUi() const noexcept;
-    };    
-    
+    };
+
 } // namespace sas

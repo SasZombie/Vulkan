@@ -2,18 +2,24 @@
 #include <cstdint>
 #include <vector>
 #include <limits>
+#include <string_view>
+#include <memory>
+#include <optional>
+
+#include "InspectableComponents.hpp"
 
 namespace sas
 {
 
     constexpr uint32_t nullIndex = std::numeric_limits<uint32_t>::max();
 
-    
     struct IComponent
     {
         virtual ~IComponent() noexcept = default;
         virtual void entityDistroyed(uint32_t entityId) noexcept = 0;
         [[nodiscard]] virtual std::unique_ptr<IComponent> copy() const noexcept = 0;
+
+        [[nodiscard]] virtual std::optional<InspectableComponent> getInspectable(uint32_t entityId) noexcept = 0;
     };
 
     template <typename T>
@@ -54,7 +60,7 @@ namespace sas
             return nullptr;
         }
 
-        [[nodiscard]] std::unique_ptr<IComponent> copy() const noexcept override 
+        [[nodiscard]] std::unique_ptr<IComponent> copy() const noexcept override
         {
             return std::make_unique<ComponentContainer<T>>(*this);
         }
@@ -81,6 +87,28 @@ namespace sas
             data.pop_back();
             entityList.pop_back();
             sparseVector[entityId] = nullIndex;
+        }
+
+        [[nodiscard]] std::optional<InspectableComponent> getInspectable(uint32_t entityId) noexcept override
+        {
+            if constexpr (!Inspectable<T>)
+            {
+                return std::nullopt;
+            }
+            else
+            {
+                T *comp = get(entityId);
+                if (!comp)
+                    return std::nullopt;
+
+                return InspectableComponent{
+                    typeid(T).name(),
+                    comp,
+                    [](void *ptr)
+                    {
+                        static_cast<T *>(ptr)->onInspect();
+                    }};
+            }
         }
         void entityDistroyed(uint32_t entityId) noexcept override
         {

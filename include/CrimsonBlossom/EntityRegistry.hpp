@@ -53,6 +53,17 @@ namespace sas
                                               {
                 (void)cmd;
                 createEntity(); });
+
+            bus.subscribe<QuerryEntityComponentsCommand>([this](const QuerryEntityComponentsCommand &cmd)
+                                                        {
+                cmd.components.clear();
+                for (const auto& [type, container] : componentsMap)
+                {
+                    if (auto inspectable = container->getInspectable(cmd.entityId))
+                    {
+                        cmd.components.push_back(*inspectable);
+                    }
+                } });
         }
 
         // MoveCtor
@@ -127,6 +138,13 @@ namespace sas
                 {
                     cmd.objList = this->getCombined<Primary, Rest...>();
                 });
+        }
+
+        std::vector<int> getAllComponents(uint32_t entity) noexcept
+        {
+            (void)entity;
+
+            return {};
         }
 
         template <typename Primary, typename... Rest>

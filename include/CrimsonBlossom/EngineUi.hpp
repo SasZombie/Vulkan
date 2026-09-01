@@ -68,6 +68,23 @@ namespace sas
         void renderUI() const noexcept override;
     };
 
+    class ObjectInspector final : public IEditorPannel
+    {
+    public:
+        uint32_t currentItemId = std::numeric_limits<uint32_t>::max();
+
+        CommandBus &commandBus;
+        ObjectInspector(CommandBus &comBus) noexcept
+            : commandBus(comBus)
+        {
+            commandBus.subscribe<ItemSelected>([&](const ItemSelected& selected){
+                currentItemId = selected.id;
+            });
+        }
+
+        void renderUI() const noexcept override;
+    };
+
     class EngineUi
     {
     private:

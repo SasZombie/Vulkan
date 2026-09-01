@@ -50,6 +50,7 @@ SET(RENDERER_SOURCES
 SET(GLOBAL_SOURCES
     Window.cpp
     Logger.cpp
+    ObjectTransform.cpp
 )
 
 SET(VULKAN_SOURCES

@@ -2,6 +2,8 @@
 #include "Mesh.hpp"
 #include "Material.hpp"
 #include "EntityRegistry.hpp"
+#include "ObjectTransform.hpp"
+#include "RenderObject.hpp"
 
 #include <GLFW/glfw3.h>
 #include <imgui.h>
@@ -54,6 +56,7 @@ sas::EngineUi::EngineUi(VulkanDevices &dev, const Window &window, CommandBus &bu
 
     pannels.push_back(std::make_unique<EditorPannel>(bus));
     pannels.push_back(std::make_unique<FPSpannel>(bus));
+    pannels.push_back(std::make_unique<ObjectInspector>(bus));
 }
 
 sas::EngineUi::~EngineUi() noexcept
@@ -169,7 +172,7 @@ void sas::EditorPannel::renderUI() const noexcept
 
             if (ImGui::TreeNode(name.c_str()))
             {
-                ImGui::Text("Vertices: %u", material.shader->getId());
+                ImGui::Text("Shader Id: %u", material.shader->getId());
                 ImGui::TreePop();
             }
 
@@ -180,31 +183,22 @@ void sas::EditorPannel::renderUI() const noexcept
 
     ImGui::Text("Rendered Objects");
 
-    //TODO
     QuerryListCommand<Combined<RenderObject, ObjectTransform3D>> renderObjects;
     commandBus.dispatch(renderObjects);
 
-    if (materials.map)
+    if (!renderObjects.objList.empty())
     {
-        for (const auto &[name, material] : *materials.map)
-        {
-            ImGui::PushID(name.c_str());
+        for (const auto &combinedObject : renderObjects.objList)
+        {                      
+            const auto& [renObj, transform] = combinedObject.components;
+            ImGui::Text(std::to_string(combinedObject.entity).c_str());
 
-            if (ImGui::TreeNode(name.c_str()))
+            if(ImGui::IsItemClicked())
             {
-                ImGui::Text("Vertices: %u", material.shader->getId());
-                ImGui::TreePop();
+                commandBus.post<ItemSelected>(ItemSelected{combinedObject.entity});
             }
-
-            ImGui::PopID();
         }
     }
-
-    // if(ImGui::CollapsingHeader("Add object"))
-    // {
-    //     float value;
-    //     ImGui::InputFloat("Put Float", &value);
-    // }
 
     ImGui::End();
 }
@@ -213,12 +207,27 @@ void sas::FPSpannel::renderUI() const noexcept
 {
     ImGui::Begin("FpsPannel");
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    ImGui::End();
+}
 
-    if (ImGui::Button("Clickable"))
+void sas::ObjectInspector::renderUI() const noexcept
+{
+    ImGui::Begin("InspectorPannel");
+    if(currentItemId == std::numeric_limits<uint32_t>::max())
     {
-        BaseLogger::log("Button Clicked");
+        ImGui::End();
+        return;
+    }   
 
-        commandBus.post<SpawnEntityCommand>(SpawnEntityCommand{});
+    QuerryEntityComponentsCommand components(currentItemId);
+    commandBus.dispatch(components);
+
+
+    for(const auto& component : components.components)
+    {
+        // logger->log(component.name);
+        component.draw();
+
     }
 
     ImGui::End();
