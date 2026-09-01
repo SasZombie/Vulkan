@@ -35,7 +35,7 @@ namespace sas
 
     public:
         AssetManager(VulkanDevices &ctx, VulkanSharedObjects &obj, CommandBus& cmdBus) noexcept;
-        RenderMesh loadMesh(const std::string &path) noexcept;
+        RenderMesh* loadMesh(const std::string &path) noexcept;
        
 
         ~AssetManager() noexcept

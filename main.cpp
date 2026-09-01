@@ -52,6 +52,7 @@ int main()
         BaseLogger::addLogger("Ui");
 
         BaseLogger::addLogger("EntityRegistry");
+        BaseLogger::addLogger("ObjectService");
         
         Window window(1920, 1080, "Meow");
         Camera camera{{0, 0, 3.f}};
@@ -71,10 +72,8 @@ int main()
         uint32_t cubeEntity = firstScene->sceneRegistry.createEntity();
         uint32_t skybox = firstScene->sceneRegistry.createEntity();
 
-        (void)skybox;
-
-        RenderMesh spereMesh = engine.assetManager.loadMesh("resources/models/sphere.obj");
-        RenderMesh cubeMesh = engine.assetManager.loadMesh("resources/models/Cube.obj");
+        RenderMesh* spereMesh = engine.assetManager.loadMesh("resources/models/sphere.obj");
+        RenderMesh* cubeMesh = engine.assetManager.loadMesh("resources/models/Cube.obj");
 
         RenderTexture renderTexture = engine.assetManager.materialManager.loadTexture("resources/textures/goldTexture.bmp");
         VulkanDynamicShader &shader = engine.assetManager.materialManager.loadShader("shaders/spv/vert.spv", "shaders/spv/frag.spv");
@@ -90,11 +89,9 @@ int main()
         RenderObject CubeObj;
         RenderObject SkyBoxObj;
 
-        (void)SkyBoxObj;
-
-        ShpereObj.mesh = &spereMesh;
-        CubeObj.mesh = &cubeMesh;
-        SkyBoxObj.mesh = &cubeMesh;
+        ShpereObj.mesh = spereMesh;
+        CubeObj.mesh = cubeMesh;
+        SkyBoxObj.mesh = cubeMesh;
 
         ShpereObj.material = firstMaterial;
         CubeObj.material = firstMaterial;

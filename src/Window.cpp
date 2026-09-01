@@ -53,10 +53,10 @@ void sas::Window::processKeyboardInput(Camera &camera) noexcept
         camera.move({0, -1, 0});
     }
 
-    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-    {
-        camera.move({0, 1, 0});
-    }
+    // if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+    // {
+    //     camera.move({0, 1, 0});
+    // }
 
     float rotationSpeed = 0.8f;
     bool rotationChanged = false;

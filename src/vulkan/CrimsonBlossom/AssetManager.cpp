@@ -395,11 +395,11 @@ sas::RenderMesh sas::AssetManager::createGpuMesh(const sas::Mesh &mesh) const no
     return {vertexBuffer, indexBuffer, vertexAllocation, indexAllocation, mesh.indices.size()};
 }
 
-sas::RenderMesh sas::AssetManager::loadMesh(const std::string &path) noexcept
+sas::RenderMesh* sas::AssetManager::loadMesh(const std::string &path) noexcept
 {
     if (gpuMeshCache.contains(path))
     {
-        return gpuMeshCache.at(path);
+        return &gpuMeshCache.at(path);
     }
 
     const auto &loadedMesh = getRawMesh(path);
@@ -422,5 +422,5 @@ sas::RenderMesh sas::AssetManager::loadMesh(const std::string &path) noexcept
 
     gpuMeshCache[path] = gpuObject;
 
-    return gpuObject;
+    return &gpuMeshCache[path];
 }

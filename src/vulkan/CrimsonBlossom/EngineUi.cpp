@@ -124,8 +124,8 @@ void sas::EditorPannel::renderUI() const noexcept
     ImGui::Begin("EditorPannel");
     ImGui::Text("Meshes");
 
-    // Mesh* selectedMesh = nullptr;
-    // Material* selectedMaterial = nullptr;
+    std::string selectedMesh;
+    std::string selectedMaterial;
 
     QuerryMapCommand<std::string, Mesh> meshes;
     commandBus.dispatch(meshes);
@@ -138,6 +138,11 @@ void sas::EditorPannel::renderUI() const noexcept
 
             if (ImGui::TreeNode(name.c_str()))
             {
+                if(ImGui::IsItemClicked())
+                {
+                    selectedMesh = name;
+                }
+
                 ImGui::Text("Vertices: %zu", mesh.vertices.size());
                 ImGui::TreePop();
             }
@@ -175,6 +180,10 @@ void sas::EditorPannel::renderUI() const noexcept
 
             if (ImGui::TreeNode(name.c_str()))
             {
+                if(ImGui::IsItemClicked())
+                {
+                    selectedMaterial = name;
+                }
                 ImGui::Text("Shader Id: %u", material.shader->getId());
                 ImGui::TreePop();
             }
@@ -208,6 +217,22 @@ void sas::EditorPannel::renderUI() const noexcept
     static char meshBuff[50];
     static char materialBuff[50];
 
+    if(!selectedMesh.empty())
+    {
+        const size_t length = (selectedMesh.size() >= 50) ? 50 : selectedMesh.size();
+        memcpy(meshBuff, selectedMesh.data(), length);
+        selectedMesh.clear();
+    }
+
+    if(!selectedMaterial.empty())
+    {
+        const size_t length = (selectedMaterial.size() >= 50) ? 50 : selectedMaterial.size();
+        memcpy(materialBuff, selectedMaterial.data(), length);
+
+        selectedMaterial.clear();
+    }
+
+    
     bool isMeshBufferNotNull = (meshBuff[0] != '\0');
     bool isMaterialBufferNotNull = (materialBuff[0] != '\0');
 

@@ -11,6 +11,8 @@
 
 #include "Logger.hpp"
 
+
+
 namespace sas
 {
 
@@ -57,21 +59,6 @@ namespace sas
                                               {
                 (void)cmd;
                 createEntity(); });
-
-            bus.subscribe<CreateNewEntityCommand>([this](const CreateNewEntityCommand &cmd) {
-
-                logger->log("Creating new entity");
-                const uint32_t newEntity = createEntity();
-                CreateRenderMeshCommand newMesh{cmd.mesh};
-                CreateRenderMaterialCommand newMaterial{cmd.material};
-
-                bus.dispatch(newMesh);
-                bus.dispatch(newMaterial);
-
-                addComponent(newEntity, &newMesh.renderMesh);
-                addComponent(newEntity, newMaterial.renderMaterial);
-
-            });
 
             bus.subscribe<QuerryEntityComponentsCommand>([this](const QuerryEntityComponentsCommand &cmd)
                                                          {

@@ -55,7 +55,7 @@ namespace sas
     struct CreateRenderMeshCommand : ICommand
     {
         std::string renderMeshPath;
-        mutable RenderMesh renderMesh;
+        mutable RenderMesh* renderMesh;
 
         CreateRenderMeshCommand(std::string rmPath) noexcept
             : renderMeshPath(rmPath)
