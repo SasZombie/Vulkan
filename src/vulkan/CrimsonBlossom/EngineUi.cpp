@@ -121,8 +121,11 @@ void sas::EngineUi::updateFrame() const noexcept
 
 void sas::EditorPannel::renderUI() const noexcept
 {
-    ImGui::Begin("Inspector");
+    ImGui::Begin("EditorPannel");
     ImGui::Text("Meshes");
+
+    // Mesh* selectedMesh = nullptr;
+    // Material* selectedMaterial = nullptr;
 
     QuerryMapCommand<std::string, Mesh> meshes;
     commandBus.dispatch(meshes);
@@ -183,22 +186,43 @@ void sas::EditorPannel::renderUI() const noexcept
 
     ImGui::Text("Rendered Objects");
 
+    // TODO: this grabs more than what I need
     QuerryListCommand<Combined<RenderObject, ObjectTransform3D>> renderObjects;
     commandBus.dispatch(renderObjects);
 
     if (!renderObjects.objList.empty())
     {
         for (const auto &combinedObject : renderObjects.objList)
-        {                      
-            const auto& [renObj, transform] = combinedObject.components;
+        {
             ImGui::Text(std::to_string(combinedObject.entity).c_str());
 
-            if(ImGui::IsItemClicked())
+            if (ImGui::IsItemClicked())
             {
                 commandBus.post<ItemSelected>(ItemSelected{combinedObject.entity});
             }
         }
     }
+
+    ImGui::Separator();
+
+    static char meshBuff[50];
+    static char materialBuff[50];
+
+    bool isMeshBufferNotNull = (meshBuff[0] != '\0');
+    bool isMaterialBufferNotNull = (materialBuff[0] != '\0');
+
+    ImGui::InputText("##meshTextArea", meshBuff, sizeof(meshBuff));
+    ImGui::InputText("##materialTextArea", materialBuff, sizeof(materialBuff));
+
+    ImGui::BeginDisabled(!(isMeshBufferNotNull && isMaterialBufferNotNull));
+    if (ImGui::Button("Add Object"))
+    {
+        commandBus.post<CreateNewEntityCommand>(CreateNewEntityCommand{meshBuff, materialBuff});
+
+        meshBuff[0] = '\0';
+        materialBuff[0] = '\0';
+    }
+    ImGui::EndDisabled();
 
     ImGui::End();
 }
@@ -213,21 +237,18 @@ void sas::FPSpannel::renderUI() const noexcept
 void sas::ObjectInspector::renderUI() const noexcept
 {
     ImGui::Begin("InspectorPannel");
-    if(currentItemId == std::numeric_limits<uint32_t>::max())
+    if (currentItemId == std::numeric_limits<uint32_t>::max())
     {
         ImGui::End();
         return;
-    }   
+    }
 
     QuerryEntityComponentsCommand components(currentItemId);
     commandBus.dispatch(components);
 
-
-    for(const auto& component : components.components)
+    for (const auto &component : components.components)
     {
-        // logger->log(component.name);
         component.draw();
-
     }
 
     ImGui::End();

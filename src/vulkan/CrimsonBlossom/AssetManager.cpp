@@ -286,8 +286,10 @@ sas::AssetManager::AssetManager(VulkanDevices &ctx, VulkanSharedObjects &shardOb
                                                        { cmd.map = &this->cpuMeshCache; });
 
     bus.subscribe<CreateNewMeshCommand>([this](const CreateNewMeshCommand &cmd)
-    {
-        loadMesh(cmd.meshPath);
+                                        { loadMesh(cmd.meshPath); });
+
+    bus.subscribe<CreateRenderMeshCommand>([this](const CreateRenderMeshCommand &cmd) {
+        cmd.renderMesh = loadMesh(cmd.renderMeshPath); 
     });
 }
 

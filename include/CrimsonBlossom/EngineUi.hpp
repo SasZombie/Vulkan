@@ -52,7 +52,6 @@ namespace sas
         {
 
         }
-
         void renderUI() const noexcept override;
     };
 

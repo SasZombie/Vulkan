@@ -8,6 +8,7 @@
 #include "vkSampler.hpp"
 #include "Logger.hpp"
 #include "Material.hpp"
+#include "MaterialManager.hpp"
 
 namespace sas
 {

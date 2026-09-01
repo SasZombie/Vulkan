@@ -9,6 +9,8 @@
 #include "ComponentContainer.hpp"
 #include "CommandBus.hpp"
 
+#include "Logger.hpp"
+
 namespace sas
 {
 
@@ -32,6 +34,8 @@ namespace sas
         CommandBus &bus;
         std::unordered_map<std::type_index, std::unique_ptr<IComponent>> componentsMap;
 
+        Logger* logger = BaseLogger::getLogger("EntityRegistry");
+
         template <typename T>
         ComponentContainer<T> *getComponentContainer() noexcept
         {
@@ -54,8 +58,23 @@ namespace sas
                 (void)cmd;
                 createEntity(); });
 
+            bus.subscribe<CreateNewEntityCommand>([this](const CreateNewEntityCommand &cmd) {
+
+                logger->log("Creating new entity");
+                const uint32_t newEntity = createEntity();
+                CreateRenderMeshCommand newMesh{cmd.mesh};
+                CreateRenderMaterialCommand newMaterial{cmd.material};
+
+                bus.dispatch(newMesh);
+                bus.dispatch(newMaterial);
+
+                addComponent(newEntity, &newMesh.renderMesh);
+                addComponent(newEntity, newMaterial.renderMaterial);
+
+            });
+
             bus.subscribe<QuerryEntityComponentsCommand>([this](const QuerryEntityComponentsCommand &cmd)
-                                                        {
+                                                         {
                 cmd.components.clear();
                 for (const auto& [type, container] : componentsMap)
                 {

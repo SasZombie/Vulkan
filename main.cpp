@@ -50,6 +50,8 @@ int main()
 
         BaseLogger::addLogger("Engine");
         BaseLogger::addLogger("Ui");
+
+        BaseLogger::addLogger("EntityRegistry");
         
         Window window(1920, 1080, "Meow");
         Camera camera{{0, 0, 3.f}};
