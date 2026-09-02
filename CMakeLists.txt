@@ -9,8 +9,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_library(project_warnings_vulkan INTERFACE)
 add_library(project_sanitizers_vulkan INTERFACE)
 
+SET(GLOBAL_CXX_FLAGS
+    -freflection
+)
+
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_options(project_warnings_vulkan INTERFACE
+        ${GLOBAL_CXX_FLAGS}
         -Wall -Wextra -Wformat-nonliteral -Wcast-align -Wpointer-arith
         -Wmissing-declarations -Winline -Wundef -Wcast-qual -Wshadow
         -Wwrite-strings -Wno-unused-parameter -Wfloat-equal -Wunused-parameter
@@ -22,7 +27,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         -fsanitize=undefined -fsanitize=address -fsanitize=leak
     )
 else()
-    target_compile_options(project_warnings INTERFACE -O3)
+    target_compile_options(project_warnings_vulkan INTERFACE ${GLOBAL_CXX_FLAGS} -O3)
 endif()
 
 find_package(Vulkan REQUIRED)
@@ -40,6 +45,9 @@ SET(ENGINE_SOURCES
     AssetManager.cpp
     MaterialManager.cpp
     EngineUi.cpp
+    SerializeCodes.cpp
+    EngineMetadata.cpp
+    Scene.cpp
 )
 
 SET(RENDERER_SOURCES

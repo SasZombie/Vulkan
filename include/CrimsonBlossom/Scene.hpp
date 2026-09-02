@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <filesystem>
 
 #include "ObjectService.hpp"
 #include "EntityRegistry.hpp"
@@ -10,6 +11,7 @@ namespace sas
     class Scene
     {
     public:
+
         uint32_t id;
         CommandBus& bus;
         EntityRegistry sceneRegistry;
@@ -20,6 +22,8 @@ namespace sas
         {
             sceneRegistry.addListQueeryHandler<RenderObject, ObjectTransform3D>();
         }
+
+        void serialize(const std::filesystem::path& path) const noexcept;
     };
 
 } // namespace sas

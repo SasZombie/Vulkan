@@ -115,7 +115,10 @@ int main()
 
             // BaseLogger::log("Nr of entities = " + std::to_string(firstScene->sceneRegistry.getEntityCount()));
         }
+
+        engine.saveScenes();
     }
+
 
     glfwTerminate();
     BaseLogger::log("\n==============================\nFinished app\n==============================");

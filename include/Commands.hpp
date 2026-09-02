@@ -44,6 +44,16 @@ namespace sas
         }
     };
 
+    struct GetFormatInfoCommand : ICommand
+    {
+        uint32_t formatType;
+    };
+
+    struct SaveCommand : ICommand
+    {
+        //Could add path
+    };
+
     struct GetMaterialByNameCommand : ICommand
     {
     };

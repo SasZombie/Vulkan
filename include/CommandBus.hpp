@@ -13,7 +13,6 @@ namespace sas
     class CommandBus
     {
 
-        // TODO: maybe make extension(if doesnt exist) (sadas) for pairs of <>
         std::unordered_map<std::type_index, std::vector<std::function<void(const ICommand &cmd)>>> commands;
         std::vector<std::unique_ptr<ICommand>> commandQueue;
 

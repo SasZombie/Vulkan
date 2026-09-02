@@ -5,20 +5,26 @@
 #include "Scene.hpp"
 #include "EngineUi.hpp"
 #include "Logger.hpp"
+#include "EngineMetadata.hpp"
 
 #include <unordered_map>
 #include <ranges>
+#include <fstream>
 
 namespace sas
 {
+    
     class CrimsonBlossom
     {
 
     private:
+        void savePreScene(std::ofstream &outStream) const noexcept;
+
     public:
         VulkanDevices vulkanLowLvl;
         VulkanSharedObjects sharedObjects;
 
+        EngineMetadata metaData{1, 0, 0};
         CommandBus commandBus;
         EngineUi engineUi;
         VulkanRenderer vkRenderer;
@@ -35,6 +41,10 @@ namespace sas
               vkRenderer(window, camera, vulkanLowLvl, sharedObjects),
               assetManager(vulkanLowLvl, sharedObjects, commandBus)
         {
+            commandBus.subscribe<SaveCommand>([this](const SaveCommand &cmd)
+                                              { 
+                                                (void)cmd;
+                                                saveScenes(); });
         }
 
         Scene *createScene() noexcept
@@ -63,6 +73,8 @@ namespace sas
         void update() noexcept;
 
         void createUi() const noexcept;
+
+        void saveScenes() const noexcept;
     };
 
 } // namespace sas
