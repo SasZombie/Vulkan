@@ -106,6 +106,9 @@ int main()
         // firstScene.sceneRegistry.addComponent(skybox, skyboxTransform);
         // firstScene.sceneRegistry.addComponent(skybox, SkyBoxObj);
 
+        engine.saveScenes();
+
+        return 1;
 
         while (!glfwWindowShouldClose(window))
         {
@@ -116,7 +119,6 @@ int main()
             // BaseLogger::log("Nr of entities = " + std::to_string(firstScene->sceneRegistry.getEntityCount()));
         }
 
-        engine.saveScenes();
     }
 
 

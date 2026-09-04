@@ -1,6 +1,6 @@
 #include "SerializeCodes.hpp"
 
-std::ostream &sas::operator<<(std::ostream &os, sas::SerializeCodesBinary code)
+std::ostream &sas::operator<<(std::ostream &os, sas::SerializeCodesVBinary code)
 {
     return os << std::to_underlying(code);
 }

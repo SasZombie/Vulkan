@@ -45,7 +45,7 @@ void sas::CrimsonBlossom::saveScenes() const noexcept
         logger->error("Cannot create directory" + mainFolderPath.string());
     }
 
-    const fs::path sceneFolderPath = "sources/scenes";
+    const fs::path sceneFolderPath = "sources/scenes/";
 
     if(!fs::create_directories(sceneFolderPath, ec) && ec)
     {
@@ -67,6 +67,7 @@ void sas::CrimsonBlossom::savePreScene(std::ofstream &outStream) const noexcept
 {
     constexpr char magic[] = "CRIMBLOS";
 
-    outStream << magic << '\n' << SerializeCodesText::COMMENT << "This is auto generated human readable format\n"
-    << SerializeCodesText::END << ' ' << SerializeCodesText::META_INFO << ' ' << metaData << '\n';
+    outStream << magic << '\n' << SerializeCodesText::COMMENT << " This is auto generated human readable format "
+    << SerializeCodesText::END << '\n' << SerializeCodesText::META_INFO << ' ' << metaData << '\n'
+    << SerializeCodesText::NUMBER_OF_SUB_OBJECTS << ' ' << scenes.size() << '\n';
 }

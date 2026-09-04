@@ -5,13 +5,15 @@
 #include <unordered_map>
 #include <memory>
 #include <typeindex>
+#include <queue>
+
+#include "Entity.hpp"
 
 #include "ComponentContainer.hpp"
 #include "CommandBus.hpp"
+#include "SparseVector.hpp"
 
 #include "Logger.hpp"
-
-
 
 namespace sas
 {
@@ -36,7 +38,23 @@ namespace sas
         CommandBus &bus;
         std::unordered_map<std::type_index, std::unique_ptr<IComponent>> componentsMap;
 
-        Logger* logger = BaseLogger::getLogger("EntityRegistry");
+        std::queue<Entity> freeIds;
+        SparseVector<Entity> entitiesVector;
+
+        Logger *logger = BaseLogger::getLogger("EntityRegistry");
+
+        [[nodiscard]]uint32_t getNextId() noexcept
+        {
+            if (!freeIds.empty())
+            {
+                const uint32_t newId = freeIds.front();
+                freeIds.pop();
+
+                return newId;
+            }
+
+            return nextId++;
+        }
 
         template <typename T>
         ComponentContainer<T> *getComponentContainer() noexcept
@@ -101,12 +119,23 @@ namespace sas
 
         uint32_t createEntity() noexcept
         {
-            return nextId++;
+            const uint32_t newId = getNextId();     
+            
+            //The id is the same as the entity
+            //In this case
+            entitiesVector.addElement(newId, newId);    
+        
+            return newId;
         }
 
         [[nodiscard]] uint32_t getEntityCount() const noexcept
         {
-            return nextId;
+            return entitiesVector.size();
+        }
+
+        [[nodiscard]] std::vector<Entity> getEntities() const noexcept
+        {
+            return entitiesVector.getAllElements();
         }
 
         void destroyEntity(uint32_t entityId) noexcept
@@ -115,6 +144,8 @@ namespace sas
             {
                 pair.second->entityDistroyed(entityId);
             }
+            freeIds.push(entityId);
+            entitiesVector.removeItem(entityId);
         }
 
         template <typename T>
@@ -144,13 +175,6 @@ namespace sas
                 {
                     cmd.objList = this->getCombined<Primary, Rest...>();
                 });
-        }
-
-        std::vector<int> getAllComponents(uint32_t entity) noexcept
-        {
-            (void)entity;
-
-            return {};
         }
 
         template <typename Primary, typename... Rest>

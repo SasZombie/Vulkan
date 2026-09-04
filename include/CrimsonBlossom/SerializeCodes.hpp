@@ -9,7 +9,7 @@
 namespace sas
 {
 
-    enum struct SerializeCodesBinary
+    enum struct SerializeCodesVBinary
     {
         COMMENT,
         META_INFO,
@@ -41,7 +41,7 @@ namespace sas
     };
 
     std::ostream &operator<<(std::ostream &os, SerializeCodesText code);
-    std::ostream &operator<<(std::ostream &os, SerializeCodesBinary code);
+    std::ostream &operator<<(std::ostream &os, SerializeCodesVBinary code);
 
 
     template <typename E1, typename E2>
@@ -66,7 +66,7 @@ namespace sas
         return true;
     }
 
-    static_assert(are_enums_identical<SerializeCodesText, SerializeCodesBinary>(),
+    static_assert(are_enums_identical<SerializeCodesText, SerializeCodesVBinary>(),
                   "SerializeCodesText and SerializeCodesBinary are out of sync!");
 
     template <typename E>
